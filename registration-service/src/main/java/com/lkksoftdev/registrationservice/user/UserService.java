@@ -3,6 +3,7 @@ package com.lkksoftdev.registrationservice.user;
 import com.lkksoftdev.registrationservice.auth.JwtResponseDto;
 import com.lkksoftdev.registrationservice.auth.JwtService;
 import com.lkksoftdev.registrationservice.auth.LoginRequestDto;
+import com.lkksoftdev.registrationservice.auth.CustomUserDetailsService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,25 +14,21 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
     private final JwtService jwtService;
 
     public UserService(UserRepository userRepository,
                        BCryptPasswordEncoder passwordEncoder,
-                       UserDetailsService userDetailsService,
+                       CustomUserDetailsService customUserDetailsService,
                        JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.userDetailsService = userDetailsService;
+        this.customUserDetailsService = customUserDetailsService;
         this.jwtService = jwtService;
     }
 
-    public User saveUser(User user) {
-        return userRepository.save(user);
-    }
-
     public UserDetails findUserWithCredentials(LoginRequestDto loginRequestDto) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequestDto.getUsername());
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginRequestDto.getUsername());
 
         if (userDetails == null || !passwordEncoder.matches(loginRequestDto.getPassword(), userDetails.getPassword())) {
             return null;
@@ -41,7 +38,7 @@ public class UserService {
     }
 
     public UserDetails findUserWithUsername(String username) {
-        return userDetailsService.loadUserByUsername(username);
+        return customUserDetailsService.loadUserByUsername(username);
     }
 
     public JwtResponseDto getJwtResponseDto(UserDetails userDetails) {

@@ -20,12 +20,15 @@ public class JwtService {
     }
 
     public String createToken(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
         var claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plusSeconds(60 * 30))
                 .subject(authentication.getName())
                 .claim("scope", createScope(authentication))
+                .claim("onlineAccountStatus", userDetails.getOnlineAccountStatus().toString())
                 .build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }

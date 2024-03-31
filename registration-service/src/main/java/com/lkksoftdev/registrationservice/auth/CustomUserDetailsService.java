@@ -1,8 +1,11 @@
-package com.lkksoftdev.registrationservice.user;
+package com.lkksoftdev.registrationservice.auth;
 
+import com.lkksoftdev.registrationservice.user.User;
+import com.lkksoftdev.registrationservice.user.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +13,10 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
-    public UserDetailsService(UserRepository userRepository) {
+    public CustomUserDetailsService(UserRepository userRepository) {
         super();
         this.userRepository = userRepository;
     }
@@ -28,6 +31,6 @@ public class UserDetailsService implements org.springframework.security.core.use
 
         GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().toString());
         List<GrantedAuthority> authorities = Collections.singletonList(authority);
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
+        return new CustomUserDetails(user.getUsername(), user.getPassword(), authorities, user.getOnlineAccountStatus());
     }
 }

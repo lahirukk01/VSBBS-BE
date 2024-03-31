@@ -1,6 +1,6 @@
 package com.lkksoftdev.registrationservice.config;
 
-import com.lkksoftdev.registrationservice.user.UserDetailsService;
+import com.lkksoftdev.registrationservice.auth.CustomUserDetailsService;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -29,11 +29,11 @@ import java.util.UUID;
 
 @Configuration
 public class JwtSecurityConfiguration {
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public JwtSecurityConfiguration(UserDetailsService userDetailsService) {
+    public JwtSecurityConfiguration(CustomUserDetailsService customUserDetailsService) {
         super();
-        this.userDetailsService = userDetailsService;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Bean
@@ -106,7 +106,7 @@ public class JwtSecurityConfiguration {
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setUserDetailsService(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
