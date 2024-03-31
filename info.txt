@@ -1,0 +1,16 @@
+http://localhost:8765/REGISTRATION-SERVICE/registration-service/customer/search
+
+http://localhost:8765/REGISTRATION-SERVICE/customer/search
+
+
+<!--		<dependency>-->
+<!--			<groupId>io.netty</groupId>-->
+<!--			<artifactId>netty-resolver-dns</artifactId>-->
+<!--			<version>4.1.107.Final</version> &lt;!&ndash; Updated to match your Netty version &ndash;&gt;-->
+<!--			<exclusions>-->
+<!--				<exclusion>-->
+<!--					<groupId>io.netty</groupId>-->
+<!--					<artifactId>netty-resolver-dns-native-macos</artifactId>-->
+<!--				</exclusion>-->
+<!--			</exclusions>-->
+<!--		</dependency>-->

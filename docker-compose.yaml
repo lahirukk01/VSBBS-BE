@@ -1,0 +1,17 @@
+version: '3.1'
+
+services:
+  db:
+    image: mysql:8
+    container_name: sba-banking-system
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: sbavirtusa_pw
+      MYSQL_DATABASE: sbavirtusa_db
+      MYSQL_USER: sbavirtusa_user
+      MYSQL_PASSWORD: sbavirtusa_pw
+    volumes:
+      - ./database:/var/lib/mysql
+    ports:
+      - "3306:3306"
