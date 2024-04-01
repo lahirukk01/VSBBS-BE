@@ -30,6 +30,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().toString());
         List<GrantedAuthority> authorities = Collections.singletonList(authority);
-        return new CustomUserDetails(user.getUsername(), user.getPassword(), authorities, user.getOnlineAccountStatus());
+        return new CustomUserDetails(user.getUsername(), user.getPassword(), authorities, user.getOnlineAccountStatus(), user.getId());
     }
 }

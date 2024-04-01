@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class JwtService {
@@ -38,12 +39,14 @@ public class JwtService {
 
     public String createToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        var userId = Objects.equals(userDetails.getOnlineAccountStatus(), OnlineAccountStatus.ACTIVE.toString()) ? userDetails.getId() : "";
 
         var claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plusSeconds(60 * 30))
                 .subject(authentication.getName())
+                .claim("userId", userId)
                 .claim("scope", createScope(authentication))
                 .claim("onlineAccountStatus", userDetails.getOnlineAccountStatus())
                 .build();
