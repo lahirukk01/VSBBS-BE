@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 public class JwtService {
@@ -21,6 +22,12 @@ public class JwtService {
     private final JwtDecoder jwtDecoder;
     private final CustomUserDetailsService customUserDetailsService;
     private final Logger LOGGER = LoggerFactory.getLogger(JwtService.class);
+
+    private static final List<String> allowedOnlineAccountStatuses = List.of(
+            OnlineAccountStatus.ACTIVE.toString(),
+            OnlineAccountStatus.UPDATE_REQUESTED.toString(),
+            OnlineAccountStatus.ID_VERIFICATION_PENDING.toString()
+    );
 
     public JwtService(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, CustomUserDetailsService customUserDetailsService) {
         super();
@@ -38,7 +45,7 @@ public class JwtService {
                 .expiresAt(Instant.now().plusSeconds(60 * 30))
                 .subject(authentication.getName())
                 .claim("scope", createScope(authentication))
-                .claim("onlineAccountStatus", userDetails.getOnlineAccountStatus().toString())
+                .claim("onlineAccountStatus", userDetails.getOnlineAccountStatus())
                 .build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
@@ -65,8 +72,7 @@ public class JwtService {
             throw new CustomBadRequestException("Invalid token");
         }
 
-        if (userDetails.getOnlineAccountStatus() != OnlineAccountStatus.ACTIVE
-        && userDetails.getOnlineAccountStatus() != OnlineAccountStatus.UPDATE_REQUESTED){
+        if (!allowedOnlineAccountStatuses.contains(userDetails.getOnlineAccountStatus())){
             throw new CustomBadRequestException("User account is not active");
         }
 

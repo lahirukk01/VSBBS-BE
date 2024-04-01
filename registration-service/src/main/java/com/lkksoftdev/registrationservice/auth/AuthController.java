@@ -58,7 +58,7 @@ public class AuthController {
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
-    @PostMapping("/otp")
+    @PostMapping("/registration/customer/otp")
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody OtpDto otpDto) {
         var otp = otpService.getOtpByCodeAndOwnerIdentifier(otpDto);
 

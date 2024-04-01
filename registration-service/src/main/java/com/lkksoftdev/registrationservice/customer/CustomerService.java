@@ -45,13 +45,16 @@ public class CustomerService {
     public CustomerProfileResponseDto findActiveCustomerProfileWithUsername(String username) {
         var user = findActiveCustomerWithUsername(username);
 
-        return new CustomerProfileResponseDto(user.getUsername(), user.getFirstName(), user.getLastName());
+        return new CustomerProfileResponseDto(user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getOnlineAccountStatus());
     }
 
     public User findActiveCustomerWithUsername(String username) {
         var user = userRepository.findByUsername(username);
 
-        if (user == null || user.getOnlineAccountStatus() != OnlineAccountStatus.ACTIVE) {
+        if (user == null || !Objects.equals(user.getOnlineAccountStatus(), OnlineAccountStatus.ACTIVE.toString())) {
             return null;
         }
 
@@ -61,7 +64,7 @@ public class CustomerService {
     @Transactional
     public void activateCustomer(Otp otp, OtpService otpService) {
         var user = otp.getUser();
-        user.setOnlineAccountStatus(OnlineAccountStatus.ACTIVE);
+        user.setOnlineAccountStatus(OnlineAccountStatus.ID_VERIFICATION_PENDING.toString());
         userRepository.save(user);
         otpService.consumeOtp(otp);
     }
@@ -77,7 +80,7 @@ public class CustomerService {
         user.setFirstName(customerProfileUpdateDto.getFirstName());
         user.setLastName(customerProfileUpdateDto.getLastName());
         user.setUsername(customerProfileUpdateDto.getUsername());
-        user.setOnlineAccountStatus(OnlineAccountStatus.UPDATE_REQUESTED);
+        user.setOnlineAccountStatus(OnlineAccountStatus.UPDATE_REQUESTED.toString());
         userRepository.save(user);
 
         return otpService.setOtpForCustomer(user);
@@ -85,7 +88,7 @@ public class CustomerService {
 
     @Transactional
     public Map<String, String> completeProfileUpdate(User user, Otp otp) {
-        user.setOnlineAccountStatus(OnlineAccountStatus.ACTIVE);
+        user.setOnlineAccountStatus(OnlineAccountStatus.ACTIVE.toString());
         userRepository.save(user);
         otpService.consumeOtp(otp);
 

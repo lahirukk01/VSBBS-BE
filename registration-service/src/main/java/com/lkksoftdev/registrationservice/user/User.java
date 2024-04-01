@@ -6,8 +6,6 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.List;
 
@@ -27,8 +25,7 @@ public class User extends UserBase {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Enumerated(EnumType.STRING)
-    private OnlineAccountStatus onlineAccountStatus;
+    private String onlineAccountStatus;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Otp> otps;
