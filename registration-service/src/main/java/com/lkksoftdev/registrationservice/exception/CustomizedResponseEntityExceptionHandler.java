@@ -46,6 +46,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public final ResponseEntity<ResponseDto> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException ex, WebRequest request) {
+        LOGGER.error("Exception occurred: " + ex);
         return buildResponseEntity("Invalid path parameter type", request, HttpStatus.BAD_REQUEST);
     }
 }
