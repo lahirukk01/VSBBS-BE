@@ -73,7 +73,7 @@ public class CustomerService {
     }
 
     @Transactional
-    public Map<String, String> updateCustomerProfile(CustomerProfileUpdateDto customerProfileUpdateDto, User user) {
+    public Map<String, String> initiateUpdatingCustomerProfile(CustomerProfileUpdateDto customerProfileUpdateDto, User user) {
         user.setFirstName(customerProfileUpdateDto.getFirstName());
         user.setLastName(customerProfileUpdateDto.getLastName());
         user.setUsername(customerProfileUpdateDto.getUsername());
@@ -81,5 +81,14 @@ public class CustomerService {
         userRepository.save(user);
 
         return otpService.setOtpForCustomer(user);
+    }
+
+    @Transactional
+    public Map<String, String> completeProfileUpdate(User user, Otp otp) {
+        user.setOnlineAccountStatus(OnlineAccountStatus.ACTIVE);
+        userRepository.save(user);
+        otpService.consumeOtp(otp);
+
+        return Map.of("message", "Profile updated successfully");
     }
 }

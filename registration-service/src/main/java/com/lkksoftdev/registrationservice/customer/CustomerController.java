@@ -1,7 +1,12 @@
 package com.lkksoftdev.registrationservice.customer;
 
 import com.lkksoftdev.registrationservice.common.ResponseDto;
+import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
+import com.lkksoftdev.registrationservice.otp.Otp;
+import com.lkksoftdev.registrationservice.otp.OtpDto;
+import com.lkksoftdev.registrationservice.otp.OtpService;
+import com.lkksoftdev.registrationservice.user.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +20,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/customer")
 public class CustomerController {
     private final CustomerService customerService;
+    private final OtpService otpService;
 
-    public CustomerController(CustomerService customerService) {
+    public CustomerController(CustomerService customerService, OtpService otpService) {
         this.customerService = customerService;
+        this.otpService = otpService;
     }
 
     @GetMapping("/profile")
@@ -42,16 +49,24 @@ public class CustomerController {
         }
 
         if (!customerService.areProfileDetailsValid(customerProfileUpdateDto, customer)) {
-            throw new CustomResourceNotFoundException("Customer profile details do not match the existing profile");
+            throw new CustomBadRequestException("Customer profile details do not match the existing profile");
         }
 
-        var response = customerService.updateCustomerProfile(customerProfileUpdateDto, customer);
+        var response = customerService.initiateUpdatingCustomerProfile(customerProfileUpdateDto, customer);
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
     @PostMapping("/profile/otp")
     @PreAuthorize("hasAuthority('SCOPE_CUSTOMER')")
-    public void submitOtpForProfileUpdate() {
-        // Submit OTP for profile update
+    public ResponseEntity<?> submitOtpForProfileUpdate(@Valid @RequestBody OtpDto otpDto, Authentication authentication) {
+        Otp otp = otpService.getOtpByCodeAndOwnerIdentifier(otpDto);
+        User user = otp.getUser();
+
+        if (!user.getUsername().equals(authentication.getName())) {
+            throw new CustomResourceNotFoundException("Invalid OTP for the user");
+        }
+
+        var response = customerService.completeProfileUpdate(user, otp);
+        return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 }

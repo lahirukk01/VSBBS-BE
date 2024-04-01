@@ -67,8 +67,8 @@ public class AuthController {
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<?> searchData() {
+    @GetMapping("/health")
+    public ResponseEntity<?> healthCheck() {
         return ResponseEntity.ok("Ok");
     }
 }
