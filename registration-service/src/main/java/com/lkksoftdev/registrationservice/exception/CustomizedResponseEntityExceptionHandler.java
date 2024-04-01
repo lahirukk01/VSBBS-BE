@@ -15,35 +15,37 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+
+    private ResponseEntity<ResponseDto> buildResponseEntity(String errorMessage, WebRequest request, HttpStatus status) {
+        ErrorDetails errorDetails = new ErrorDetails(
+                errorMessage,
+                request.getDescription(false),
+                LocalDateTime.now());
+        return new ResponseEntity<>(new ResponseDto(null, errorDetails), status);
+    }
 
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<ResponseDto> handleAllExceptions(Exception ex, WebRequest request) {
-        logger.error("Exception occurred: " + ex);
-        ErrorDetails errorDetails = new ErrorDetails(
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now());
-        return new ResponseEntity<>(new ResponseDto(null, errorDetails), HttpStatus.INTERNAL_SERVER_ERROR);
+        LOGGER.error("Exception occurred: " + ex);
+        return buildResponseEntity("Something went wrong", request, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(CustomResourceNotFoundException.class)
     public final ResponseEntity<ResponseDto> handleCustomResourceNotFoundException(
             CustomResourceNotFoundException ex, WebRequest request) {
-        ErrorDetails errorDetails = new ErrorDetails(
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now());
-        return new ResponseEntity<>(new ResponseDto(null, errorDetails), HttpStatus.NOT_FOUND);
+        return buildResponseEntity(ex.getMessage(), request, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(CustomBadRequestException.class)
+    public final ResponseEntity<ResponseDto> handleCustomBadRequestException(
+            CustomBadRequestException ex, WebRequest request) {
+        return buildResponseEntity(ex.getMessage(), request, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public final ResponseEntity<ResponseDto> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException ex, WebRequest request) {
-        ErrorDetails errorDetails = new ErrorDetails(
-                "Invalid path parameter type",
-                request.getDescription(false),
-                LocalDateTime.now());
-        return new ResponseEntity<>(new ResponseDto(null, errorDetails), HttpStatus.BAD_REQUEST);
+        return buildResponseEntity("Invalid path parameter type", request, HttpStatus.BAD_REQUEST);
     }
 }
