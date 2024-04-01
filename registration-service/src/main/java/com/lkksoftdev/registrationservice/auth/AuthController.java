@@ -3,6 +3,7 @@ package com.lkksoftdev.registrationservice.auth;
 import com.lkksoftdev.registrationservice.common.ResponseDto;
 import com.lkksoftdev.registrationservice.customer.CustomerOnlineRegistrationDto;
 import com.lkksoftdev.registrationservice.customer.CustomerService;
+import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.registrationservice.otp.OtpDto;
 import com.lkksoftdev.registrationservice.otp.OtpService;
@@ -20,14 +21,16 @@ public class AuthController {
     private final CustomerService customerService;
     private final OtpService otpService;
     private final UserService userService;
+    private final JwtService jwtService;
 
     private final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
     public AuthController(CustomerService customerService, OtpService otpService,
-                          UserService userService) {
+                          UserService userService, JwtService jwtService) {
         this.customerService = customerService;
         this.otpService = otpService;
         this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/registration/customer")
@@ -64,6 +67,20 @@ public class AuthController {
         var userDetails = userService.findUserWithUsername(otp.getUser().getUsername());
         JwtResponseDto response = userService.getJwtResponseDto(userDetails);
 
+        return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
+    }
+
+    @PostMapping("/introspect")
+    public ResponseEntity<?> introspectToken(@Valid @RequestBody IntrospectRequestDto introspectRequestDto) {
+        System.out.println("introspectRequestDto = " + introspectRequestDto);
+        String scope = jwtService.validateTokenAndGetScope(introspectRequestDto.getToken());
+
+        if (scope == null) {
+            LOGGER.error("Invalid token: " + introspectRequestDto.getToken());
+            throw new CustomBadRequestException("Invalid token");
+        }
+
+        var response = new IntrospectResponseDataDto(scope);
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
