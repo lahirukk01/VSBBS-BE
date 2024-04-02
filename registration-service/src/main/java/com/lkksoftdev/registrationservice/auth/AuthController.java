@@ -72,15 +72,12 @@ public class AuthController {
 
     @PostMapping("/introspect")
     public ResponseEntity<?> introspectToken(@Valid @RequestBody IntrospectRequestDto introspectRequestDto) {
-        System.out.println("introspectRequestDto = " + introspectRequestDto);
-        String scope = jwtService.validateTokenAndGetScope(introspectRequestDto.getToken());
+        var response = jwtService.validateTokenAndGetClaims(introspectRequestDto.getToken());
 
-        if (scope == null) {
+        if (response == null) {
             LOGGER.error("Invalid token: " + introspectRequestDto.getToken());
             throw new CustomBadRequestException("Invalid token");
         }
-
-        var response = new IntrospectResponseDataDto(scope);
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 

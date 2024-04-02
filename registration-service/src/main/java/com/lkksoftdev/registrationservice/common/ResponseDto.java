@@ -23,9 +23,7 @@ public class ResponseDto {
         Map<String, Object> result = new HashMap<>();
         String className = customEntityClass.getSimpleName().toLowerCase();
 
-        if (data instanceof List<?>) {
-            List<?> list = (List<?>) data;
-
+        if (data instanceof List<?> list) {
             result.put(className + "s", list);
         } else {
             result.put(className, data);

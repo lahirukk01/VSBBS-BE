@@ -59,7 +59,7 @@ public class JwtService {
                 .toArray(String[]::new);
     }
 
-    public String validateTokenAndGetScope(String token) {
+    public IntrospectResponseDataDto validateTokenAndGetClaims(String token) {
         CustomUserDetails userDetails;
         LOGGER.info("Token: " + token);
 
@@ -79,10 +79,12 @@ public class JwtService {
             throw new CustomBadRequestException("User account is not active");
         }
 
-        return userDetails.getAuthorities().stream()
+        String scope = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElse(null);
+
+        return new IntrospectResponseDataDto(userDetails.getId(), scope, userDetails.getOnlineAccountStatus());
     }
 }
 

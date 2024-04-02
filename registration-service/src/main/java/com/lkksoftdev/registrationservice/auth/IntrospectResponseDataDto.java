@@ -1,4 +1,4 @@
 package com.lkksoftdev.registrationservice.auth;
 
-public record IntrospectResponseDataDto(String scope) {
+public record IntrospectResponseDataDto(Integer userId, String scope, String onlineAccountStatus) {
 }
