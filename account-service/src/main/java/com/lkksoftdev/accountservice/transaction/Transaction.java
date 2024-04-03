@@ -1,6 +1,7 @@
-package com.lkksoftdev.accountservice.account;
+package com.lkksoftdev.accountservice.transaction;
 
 
+import com.lkksoftdev.accountservice.account.Account;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

@@ -13,9 +13,9 @@ import java.util.Map;
 @Setter
 public class ResponseDto {
     private Object data;
-    private Object error;
+    private ErrorDetails error;
 
-    public ResponseDto(Object data, Object error) {
+    public ResponseDto(Object data, ErrorDetails error) {
         this.data = data;
         this.error = error;
     }

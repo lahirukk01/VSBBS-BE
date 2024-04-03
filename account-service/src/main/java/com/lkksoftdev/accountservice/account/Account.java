@@ -1,5 +1,6 @@
 package com.lkksoftdev.accountservice.account;
 
+import com.lkksoftdev.accountservice.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
