@@ -17,12 +17,12 @@ public class AccountService {
         this.transactionService = transactionService;
     }
 
-    public List<Account> getAccountsByCustomerId(Long customerId) {
-        return accountRepository.findByCustomerId(customerId);
+    public List<AccountDto> getAccountsByCustomerId(Long customerId) {
+        return accountRepository.findAccountsByCustomerId(customerId);
     }
 
-    public Account getCustomerAccountWithLastTenTransactions(Long customerId, Long accountId) {
-        var account = getCustomerAccount(customerId, accountId);
+    public AccountDto getCustomerAccountWithLastTenTransactions(Long customerId, Long accountId) {
+        AccountDto account = getCustomerAccount(customerId, accountId);
 
         if (account == null) {
             throw new CustomResourceNotFoundException("Account not found");
@@ -35,7 +35,7 @@ public class AccountService {
         return account;
     }
 
-    public Account getCustomerAccount(Long customerId, Long accountId) {
+    public AccountDto getCustomerAccount(Long customerId, Long accountId) {
         return accountRepository.findByCustomerIdAndId(customerId, accountId);
     }
 }

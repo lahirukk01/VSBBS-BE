@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/{customerId}/accounts")
 public class AccountController {
     private final AccountService accountService;
     private final TransactionService transactionService;
@@ -23,19 +22,24 @@ public class AccountController {
         this.transactionService = transactionService;
     }
 
-    @GetMapping("/")
+//    @GetMapping("/accounts/health")
+//    public String health() {
+//        return "Account service is up and running";
+//    }
+
+    @GetMapping("/{customerId}/accounts")
     public ResponseEntity<?> getAccountsByCustomerId(@PathVariable Long customerId) {
         var accounts = accountService.getAccountsByCustomerId(customerId);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(accounts, Account.class), HttpStatus.OK);
     }
 
-    @GetMapping("/{accountId}")
+    @GetMapping("/{customerId}/accounts/{accountId}")
     public ResponseEntity<?> getCustomerAccount(@PathVariable Long customerId, @PathVariable Long accountId) {
         var account = accountService.getCustomerAccountWithLastTenTransactions(customerId, accountId);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(account, Account.class), HttpStatus.OK);
     }
 
-    @GetMapping("/{accountId}/search")
+    @GetMapping("/{customerId}/accounts/{accountId}/search")
     public ResponseEntity<?> searchCustomerAccount(
            @PathVariable Long customerId,
            @PathVariable Long accountId,

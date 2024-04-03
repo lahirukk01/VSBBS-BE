@@ -1,5 +1,6 @@
 package com.lkksoftdev.accountservice.account;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.lkksoftdev.accountservice.transaction.Transaction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +37,7 @@ public class Account {
     @NotNull
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "account")
+    @JsonManagedReference
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     private List<Transaction> transactions;
 }
