@@ -6,7 +6,8 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+// Moving all authentication logic to api gateway
+//@Configuration
 public class FilterConfig {
     private final IntrospectClient introspectClient;
 
