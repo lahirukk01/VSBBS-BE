@@ -1,9 +1,7 @@
 package com.lkksoftdev.beneficiaryservice.beneficiary;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Beneficiary {
+public class Beneficiary extends BeneficiaryBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,19 +23,8 @@ public class Beneficiary {
     private Long customerId;
 
     @NotNull
-    private String name;
-
-    @NotNull
-    private Long accountId;
-
-    @NotNull
-    private String accountIfscCode;
-
-    @NotNull
-    @Email
-    private String email;
-
-    @NotNull
+    @Size(max = 20)
+    @Column(length = 20)
     private String status;
 
     private String comments;
@@ -47,4 +34,15 @@ public class Beneficiary {
 
     @NotNull
     private LocalDateTime updatedAt;
+
+    public Beneficiary(BeneficiaryBase beneficiaryBase, Long customerId) {
+        this.name = beneficiaryBase.getName();
+        this.accountId = beneficiaryBase.getAccountId();
+        this.accountIfscCode = beneficiaryBase.getAccountIfscCode();
+        this.email = beneficiaryBase.getEmail();
+        this.customerId = customerId;
+        this.status = BeneficiaryStatus.PENDING.getStatus();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 }
