@@ -37,6 +37,9 @@ public class Transaction {
     private double amount;
 
     @NotNull
+    private String description;
+
+    @NotNull
     @Size(max = 20)
     private String endBankIfsc;
 

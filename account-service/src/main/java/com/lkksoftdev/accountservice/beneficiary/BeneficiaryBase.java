@@ -1,0 +1,35 @@
+package com.lkksoftdev.accountservice.beneficiary;
+
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class BeneficiaryBase {
+    @NotNull
+    @Size(max = 50)
+    @Column(length = 50)
+    protected String name;
+
+    @NotNull
+    @Min(1)
+    protected Long accountId;
+
+    @NotNull
+    @Size(max = 20)
+    @Column(length = 20)
+    protected String accountIfscCode;
+
+    @NotNull
+    @Email
+    @Size(max = 50)
+    @Column(length = 50)
+    protected String email;
+}
