@@ -33,11 +33,6 @@ public class AccountController {
         this.beneficiaryService = beneficiaryService;
     }
 
-//    @GetMapping("/accounts/health")
-//    public String health() {
-//        return "Account service is up and running";
-//    }
-
     @GetMapping("/{customerId}/accounts")
     public ResponseEntity<?> getAccountsByCustomerId(@PathVariable Long customerId) {
         var accounts = accountService.getAccountsByCustomerIdAsDto(customerId);
