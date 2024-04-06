@@ -2,10 +2,11 @@ package com.lkksoftdev.accountservice.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+//import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Configuration
+// Not using this configuration anymore
+//@Configuration
 public class WebClientConfig {
     @Value("${beneficiary.url}")
     private String beneficiaryUrl;

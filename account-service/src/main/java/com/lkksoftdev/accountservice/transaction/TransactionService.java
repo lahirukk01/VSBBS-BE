@@ -2,7 +2,6 @@ package com.lkksoftdev.accountservice.transaction;
 
 import com.lkksoftdev.accountservice.account.Account;
 import com.lkksoftdev.accountservice.account.TransactionRequestDto;
-import com.lkksoftdev.accountservice.beneficiary.Beneficiary;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,13 +27,13 @@ public class TransactionService {
         return transactionRepository.findTop10ByAccountIdOrderByCreatedAtDesc(accountId);
     }
 
-    public void createTransaction(Beneficiary beneficiary, Account account, TransactionRequestDto transactionRequestDto) {
+    public void createTransaction(Long beneficiaryAccountId, String beneficiaryIfscCode, Account account, TransactionRequestDto transactionRequestDto) {
         Transaction transaction = new Transaction();
         transaction.setAccount(account);
         transaction.setTransactionType(TransactionType.DEBIT.getValue());
         transaction.setAmount(transactionRequestDto.getAmount());
-        transaction.setEndBankAccountId(beneficiary.getAccountId());
-        transaction.setEndBankIfsc(beneficiary.getAccountIfscCode());
+        transaction.setEndBankAccountId(beneficiaryAccountId);
+        transaction.setEndBankIfsc(beneficiaryIfscCode);
         transaction.setDescription(transactionRequestDto.getDescription());
         transaction.setCreatedAt(LocalDateTime.now());
         transactionRepository.save(transaction);

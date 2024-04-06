@@ -1,6 +1,6 @@
 package com.lkksoftdev.accountservice.account;
 
-import com.lkksoftdev.accountservice.beneficiary.Beneficiary;
+import com.lkksoftdev.accountservice.beneficiary.BeneficiaryResponseDto;
 import com.lkksoftdev.accountservice.beneficiary.BeneficiaryService;
 import com.lkksoftdev.accountservice.beneficiary.BeneficiaryStatus;
 import com.lkksoftdev.accountservice.common.ResponseDto;
@@ -60,17 +60,18 @@ public class AccountController {
             throw new CustomBadRequestException("Insufficient balance");
         }
 
-        Beneficiary beneficiary = beneficiaryService.fetchBeneficiary(
+        BeneficiaryResponseDto beneficiaryResponseDto = beneficiaryService.fetchBeneficiary(
             customerId,
-            transactionRequestDto.getBeneficiaryId()).block();
+            transactionRequestDto.getBeneficiaryId());
 
-        if (beneficiary == null || !beneficiary.getStatus().equals(BeneficiaryStatus.APPROVED.getStatus())) {
+        if (beneficiaryResponseDto == null || !beneficiaryResponseDto.status().equals(BeneficiaryStatus.APPROVED.getStatus())) {
             throw new CustomBadRequestException("Beneficiary not found or not approved");
         }
 
-        accountService.createTransaction(beneficiary, account, transactionRequestDto);
+        accountService.createTransaction(beneficiaryResponseDto.accountId(),
+                beneficiaryResponseDto.accountIfscCode(), account, transactionRequestDto);
 
-        Map<String, String> responseData = Map.of("message", "Transaction successful");
+        Map<String, String> responseData = Map.of("message", "Transaction completed successfully");
         return new ResponseEntity<>(new ResponseDto(responseData, null), HttpStatus.CREATED);
     }
 

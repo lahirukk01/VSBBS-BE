@@ -1,6 +1,5 @@
 package com.lkksoftdev.accountservice.account;
 
-import com.lkksoftdev.accountservice.beneficiary.Beneficiary;
 import com.lkksoftdev.accountservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.accountservice.transaction.Transaction;
 import com.lkksoftdev.accountservice.transaction.TransactionService;
@@ -48,8 +47,8 @@ public class AccountService {
     }
 
     @Transactional
-    public void createTransaction(Beneficiary beneficiary, Account account, TransactionRequestDto transactionRequestDto) {
-        transactionService.createTransaction(beneficiary, account, transactionRequestDto);
+    public void createTransaction(Long beneficiaryAccountId, String beneficiaryIfscCode, Account account, TransactionRequestDto transactionRequestDto) {
+        transactionService.createTransaction(beneficiaryAccountId, beneficiaryIfscCode, account, transactionRequestDto);
 
         account.setBalance(account.getBalance() - transactionRequestDto.getAmount());
         account.setUpdatedAt(LocalDateTime.now());

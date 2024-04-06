@@ -1,23 +1,17 @@
 package com.lkksoftdev.accountservice.beneficiary;
 
+import com.lkksoftdev.accountservice.feign.BeneficiaryClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 @Service
 public class BeneficiaryService {
-    private final WebClient beneficiaryWebClient;
+    private final BeneficiaryClient beneficiaryClient;
 
-    public BeneficiaryService(WebClient beneficiaryWebClient) {
-        this.beneficiaryWebClient = beneficiaryWebClient;
+    public BeneficiaryService(BeneficiaryClient beneficiaryClient) {
+        this.beneficiaryClient = beneficiaryClient;
     }
 
-    public Mono<Beneficiary> fetchBeneficiary(Long customerId, Long beneficiaryId) {
-        String uri = String.format("/%d/beneficiaries/%d", customerId, beneficiaryId);
-
-        return beneficiaryWebClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(Beneficiary.class);
+    public BeneficiaryResponseDto fetchBeneficiary(Long customerId, Long beneficiaryId) {
+        return beneficiaryClient.getBeneficiaryByCustomer(customerId, beneficiaryId).getBody();
     }
 }
