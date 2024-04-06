@@ -2,6 +2,7 @@ package com.lkksoftdev.accountservice.account;
 
 import com.lkksoftdev.accountservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.accountservice.transaction.Transaction;
+import com.lkksoftdev.accountservice.transaction.TransactionRequestDto;
 import com.lkksoftdev.accountservice.transaction.TransactionService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;

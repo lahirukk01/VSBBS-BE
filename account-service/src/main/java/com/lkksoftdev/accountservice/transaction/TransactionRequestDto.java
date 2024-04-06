@@ -1,4 +1,4 @@
-package com.lkksoftdev.accountservice.account;
+package com.lkksoftdev.accountservice.transaction;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -20,4 +20,7 @@ public class TransactionRequestDto {
 
     @NotNull
     private String description;
+
+    @NotNull
+    private TransactionMethod transactionMethod;
 }

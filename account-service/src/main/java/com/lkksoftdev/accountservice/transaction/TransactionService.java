@@ -1,7 +1,6 @@
 package com.lkksoftdev.accountservice.transaction;
 
 import com.lkksoftdev.accountservice.account.Account;
-import com.lkksoftdev.accountservice.account.TransactionRequestDto;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -31,6 +30,7 @@ public class TransactionService {
         Transaction transaction = new Transaction();
         transaction.setAccount(account);
         transaction.setTransactionType(TransactionType.DEBIT.getValue());
+        transaction.setTransactionMethod(transactionRequestDto.getTransactionMethod().name());
         transaction.setAmount(transactionRequestDto.getAmount());
         transaction.setEndBankAccountId(beneficiaryAccountId);
         transaction.setEndBankIfsc(beneficiaryIfscCode);

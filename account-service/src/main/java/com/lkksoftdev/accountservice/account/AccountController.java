@@ -7,6 +7,7 @@ import com.lkksoftdev.accountservice.common.ResponseDto;
 import com.lkksoftdev.accountservice.exception.CustomBadRequestException;
 import com.lkksoftdev.accountservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.accountservice.transaction.Transaction;
+import com.lkksoftdev.accountservice.transaction.TransactionRequestDto;
 import com.lkksoftdev.accountservice.transaction.TransactionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -75,7 +76,7 @@ public class AccountController {
         return new ResponseEntity<>(new ResponseDto(responseData, null), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{customerId}/accounts/{accountId}/search")
+    @GetMapping("/{customerId}/accounts/{accountId}/transactions")
     public ResponseEntity<?> searchCustomerAccount(
            @PathVariable Long customerId,
            @PathVariable Long accountId,

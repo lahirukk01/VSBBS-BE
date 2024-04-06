@@ -41,6 +41,10 @@ public class Transaction {
 
     @NotNull
     @Size(max = 20)
+    private String transactionMethod;
+
+    @NotNull
+    @Size(max = 20)
     private String endBankIfsc;
 
     @NotNull
