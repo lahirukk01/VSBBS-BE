@@ -1,5 +1,6 @@
 package com.lkksoftdev.registrationservice.customer;
 
+import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.registrationservice.otp.Otp;
 import com.lkksoftdev.registrationservice.otp.OtpService;
 import com.lkksoftdev.registrationservice.user.OnlineAccountStatus;
@@ -93,5 +94,10 @@ public class CustomerService {
         otpService.consumeOtp(otp);
 
         return Map.of("message", "Profile updated successfully");
+    }
+
+    public User findCustomerById(Integer customerId) {
+        return userRepository.findById(customerId)
+                .orElseThrow(() -> new CustomResourceNotFoundException("Customer not found"));
     }
 }

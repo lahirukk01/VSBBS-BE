@@ -8,12 +8,16 @@ import com.lkksoftdev.registrationservice.otp.OtpDto;
 import com.lkksoftdev.registrationservice.otp.OtpService;
 import com.lkksoftdev.registrationservice.user.User;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @EnableMethodSecurity
@@ -67,6 +71,21 @@ public class CustomerController {
         }
 
         var response = customerService.completeProfileUpdate(user, otp);
+        return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
+    }
+
+    // Manager get customer info
+    @GetMapping("/{customerId}")
+    @PreAuthorize("hasAuthority('SCOPE_MANAGER')")
+    public ResponseEntity<?> getCustomerInfo(@PathVariable @Min(1) Integer customerId) {
+        var customer = customerService.findCustomerById(customerId);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("firstName", customer.getFirstName());
+        response.put("lastName", customer.getLastName());
+        response.put("email", customer.getEmail());
+        response.put("mobile", customer.getMobile());
+
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 }
