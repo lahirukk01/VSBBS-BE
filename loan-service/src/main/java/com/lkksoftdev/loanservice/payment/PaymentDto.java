@@ -1,4 +1,7 @@
 package com.lkksoftdev.loanservice.payment;
 
-public record PaymentDto(String paymentMethod, Object paymentDetails) {
+public record PaymentDto(
+        String paymentMethod, String cardNumber,
+        String cardHolderName, String cardExpiry, String cardCvv,
+        String upiId, Long customerId, String savingsAccountNumber) {
 }

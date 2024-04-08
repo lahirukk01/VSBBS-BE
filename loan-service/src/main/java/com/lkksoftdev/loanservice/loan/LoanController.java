@@ -2,10 +2,11 @@ package com.lkksoftdev.loanservice.loan;
 
 import com.lkksoftdev.loanservice.common.ResponseDto;
 import com.lkksoftdev.loanservice.exception.CustomBadRequestException;
-import com.lkksoftdev.loanservice.feign.CreditRatingClient;
+import com.lkksoftdev.loanservice.feign.ExternalServiceClient;
 import com.lkksoftdev.loanservice.feign.CreditRatingResponseDto;
 import com.lkksoftdev.loanservice.feign.CustomerClient;
 import com.lkksoftdev.loanservice.feign.CustomerDto;
+import com.lkksoftdev.loanservice.payment.Payment;
 import com.lkksoftdev.loanservice.payment.PaymentDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -18,12 +19,12 @@ import java.util.Map;
 @RestController
 public class LoanController {
     private final LoanService loanService;
-    private final CreditRatingClient creditRatingClient;
+    private final ExternalServiceClient externalServiceClient;
     private final CustomerClient customerClient;
 
-    public LoanController(LoanService loanService, CreditRatingClient creditRatingClient, CustomerClient customerClient) {
+    public LoanController(LoanService loanService, ExternalServiceClient externalServiceClient, CustomerClient customerClient) {
         this.loanService = loanService;
-        this.creditRatingClient = creditRatingClient;
+        this.externalServiceClient = externalServiceClient;
         this.customerClient = customerClient;
     }
 
@@ -71,8 +72,8 @@ public class LoanController {
             throw new CustomBadRequestException("Invalid payment method");
         }
 
-        loanService.createPayment(loan, paymentDto);
-        return new ResponseEntity<>(new LoanMutateResponseDto(loan.getId()), HttpStatus.CREATED);
+        var payment = loanService.createPayment(loan, paymentDto);
+        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(payment, Payment.class), HttpStatus.CREATED);
     }
 
     // Manager get all loans
@@ -87,7 +88,7 @@ public class LoanController {
     ResponseEntity<?> getLoanCreditScore(@PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findLoanById(loanId);
         CustomerDto customerDto = customerClient.getCustomer(loan.getCustomerId()).getBody();
-        CreditRatingResponseDto creditRatingResponseDto = creditRatingClient.getCreditRating(customerDto).getBody();
+        CreditRatingResponseDto creditRatingResponseDto = externalServiceClient.getCreditRating(customerDto).getBody();
 
         if (creditRatingResponseDto == null) {
             throw new RuntimeException("Credit rating service is not available");

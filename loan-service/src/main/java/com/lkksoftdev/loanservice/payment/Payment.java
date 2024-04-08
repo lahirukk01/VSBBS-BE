@@ -27,5 +27,8 @@ public class Payment {
     @Min(0)
     private double amount;
 
+    @NotNull
+    private String method;
+
     private LocalDateTime paymentTimestamp;
 }

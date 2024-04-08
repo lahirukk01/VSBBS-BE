@@ -1,8 +1,12 @@
 package com.lkksoftdev.loanservice.loan;
 
 import com.lkksoftdev.loanservice.exception.CustomResourceNotFoundException;
+import com.lkksoftdev.loanservice.feign.CardPaymentDetailsDto;
+import com.lkksoftdev.loanservice.feign.ExternalServiceClient;
+import com.lkksoftdev.loanservice.payment.Payment;
 import com.lkksoftdev.loanservice.payment.PaymentDto;
 import com.lkksoftdev.loanservice.payment.PaymentMethod;
+import com.lkksoftdev.loanservice.payment.PaymentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,9 +22,16 @@ public class LoanService {
             .toList();
 
     private final LoanRepository loanRepository;
+    private final ExternalServiceClient externalServiceClient;
+    private final PaymentService paymentService;
 
-    public LoanService(LoanRepository loanRepository) {
+    public LoanService(
+            LoanRepository loanRepository,
+            ExternalServiceClient externalServiceClient,
+            PaymentService paymentService) {
         this.loanRepository = loanRepository;
+        this.externalServiceClient = externalServiceClient;
+        this.paymentService = paymentService;
     }
 
     public Long createLoan(LoanBase loanBase, Long customerId) {
@@ -95,7 +106,50 @@ public class LoanService {
         return ALLOWED_PAYMENT_METHODS.contains(paymentMethod);
     }
 
-    public void createPayment(Loan loan, PaymentDto paymentDto) {
+    private Payment processPaymentByCard(PaymentDto paymentDto, Loan loan) {
+        double emiAmount = loan.calculateEmi();
+        CardPaymentDetailsDto cardPaymentDetailsDto = new CardPaymentDetailsDto(paymentDto.cardNumber(),
+                paymentDto.cardHolderName(), paymentDto.cardExpiry(), paymentDto.cardCvv(), emiAmount);
 
+        externalServiceClient.makeCardPayment(cardPaymentDetailsDto).getBody();
+        return paymentService.createPayment(loan.getId(), emiAmount, paymentDto.paymentMethod());
+    }
+
+    private boolean isValidCardDetails(PaymentDto paymentDto) {
+        return paymentDto.cardNumber() != null && paymentDto.cardHolderName() != null
+                && paymentDto.cardExpiry() != null && paymentDto.cardCvv() != null;
+    }
+
+    private boolean isValidSavingAccountDetails(PaymentDto paymentDto) {
+        return paymentDto.savingsAccountNumber() != null && paymentDto.customerId() != null;
+    }
+
+    private boolean isValidUpiDetails(PaymentDto paymentDto) {
+        return paymentDto.upiId() != null;
+    }
+
+    public Payment createPayment(Loan loan, PaymentDto paymentDto) {
+        switch (paymentDto.paymentMethod()) {
+            case "CREDIT_CARD":
+            case "DEBIT_CARD":
+                if (!isValidCardDetails(paymentDto)) {
+                    throw new CustomResourceNotFoundException("Invalid card details");
+                }
+
+                return processPaymentByCard(paymentDto, loan);
+            case "SAVINGS_ACCOUNT":
+                if (!isValidSavingAccountDetails(paymentDto)) {
+                    throw new CustomResourceNotFoundException("Invalid savings account details");
+                }
+                break;
+            case "UPI":
+                if (!isValidUpiDetails(paymentDto)) {
+                    throw new CustomResourceNotFoundException("Invalid payment method details");
+                }
+                break;
+            default:
+                throw new CustomResourceNotFoundException("Invalid payment method");
+        }
+        return null;
     }
 }

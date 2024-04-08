@@ -34,4 +34,9 @@ public class Loan extends LoanBase {
 
     @NotNull
     private LocalDateTime updatedAt;
+
+    public double calculateEmi() {
+        // Including 1% processing fee
+        return Math.round(101 * amount / numberOfEmis) / 100.0;
+    }
 }
