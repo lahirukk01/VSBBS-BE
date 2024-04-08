@@ -1,4 +1,4 @@
 package com.lkksoftdev.loanservice.feign;
 
-public record AccountTransferDto() {
+public record AccountTransferDto(double amount) {
 }

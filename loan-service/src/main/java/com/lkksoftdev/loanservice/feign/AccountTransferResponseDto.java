@@ -1,4 +1,4 @@
 package com.lkksoftdev.loanservice.feign;
 
-public record AccountTransferResponseDto() {
+public record AccountTransferResponseDto(String message) {
 }

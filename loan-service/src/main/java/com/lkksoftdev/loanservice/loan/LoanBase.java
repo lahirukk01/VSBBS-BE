@@ -13,13 +13,13 @@ public class LoanBase {
 
     @NotNull
     @Min(0)
-    protected double amount;
+    protected Double amount;
 
     @NotNull
     protected String purpose;
 
     @NotNull
     @Min(1)
-    protected int numberOfEmis;
+    protected Integer numberOfEmis;
 
 }

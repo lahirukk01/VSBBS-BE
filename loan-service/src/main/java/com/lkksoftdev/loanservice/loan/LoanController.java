@@ -1,6 +1,8 @@
 package com.lkksoftdev.loanservice.loan;
 
 import com.lkksoftdev.loanservice.common.ResponseDto;
+import com.lkksoftdev.loanservice.customAnnotation.BearerToken;
+import com.lkksoftdev.loanservice.customAnnotation.validator.ValidPaymentDto;
 import com.lkksoftdev.loanservice.exception.CustomBadRequestException;
 import com.lkksoftdev.loanservice.feign.ExternalServiceClient;
 import com.lkksoftdev.loanservice.feign.CreditRatingResponseDto;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -65,21 +68,18 @@ public class LoanController {
     }
 
     @PostMapping("/{customerId}/loans/{loanId}/payments")
-    ResponseEntity<?> createPayment(@RequestBody PaymentDto paymentDto, @PathVariable @Min(1) Long customerId, @PathVariable @Min(1) Long loanId) {
+    @BearerToken
+    ResponseEntity<?> createPayment(@RequestParam("bearerToken") String bearerToken, @ValidPaymentDto @RequestBody PaymentDto paymentDto, @PathVariable @Min(1) Long customerId, @PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findApprovedLoanByIdAndCustomerId(loanId, customerId);
 
-        if (!loanService.isValidPaymentMethod(paymentDto.paymentMethod())) {
-            throw new CustomBadRequestException("Invalid payment method");
-        }
-
-        var payment = loanService.createPayment(loan, paymentDto);
+        var payment = loanService.createPayment(bearerToken, loan, paymentDto);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(payment, Payment.class), HttpStatus.CREATED);
     }
 
     // Manager get all loans
     @GetMapping("/loans")
     ResponseEntity<?> getAllLoans(@RequestParam(required = false) @Min(1) int page, @RequestParam(required = false) @Min(1) int size) {
-        var loans = loanService.getAllLoans(page, size);
+        List<Loan> loans = loanService.getAllLoans(page, size);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loans, Loan.class), HttpStatus.OK);
     }
 
