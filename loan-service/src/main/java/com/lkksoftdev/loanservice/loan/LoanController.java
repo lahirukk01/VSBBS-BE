@@ -85,9 +85,10 @@ public class LoanController {
 
     // Manager get loan credit score
     @GetMapping("/loans/{loanId}/credit-score")
-    ResponseEntity<?> getLoanCreditScore(@PathVariable @Min(1) Long loanId) {
+    @BearerToken
+    ResponseEntity<?> getLoanCreditScore(@RequestParam("bearerToken") String bearerToken, @PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findLoanById(loanId);
-        CustomerDto customerDto = customerClient.getCustomer(loan.getCustomerId()).getBody();
+        CustomerDto customerDto = customerClient.getCustomer(bearerToken, loan.getCustomerId()).getBody();
         CreditRatingResponseDto creditRatingResponseDto = externalServiceClient.getCreditRating(customerDto).getBody();
 
         if (creditRatingResponseDto == null) {

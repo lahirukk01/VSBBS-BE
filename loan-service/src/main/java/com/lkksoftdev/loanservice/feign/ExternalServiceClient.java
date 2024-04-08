@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @FeignClient(name = "externalServiceClient", url = "${services.external.urls.base}")
 public interface ExternalServiceClient {
-    @PostMapping("/credit-rating")
+    @PostMapping("/credit-ratings")
     ResponseEntity<CreditRatingResponseDto> getCreditRating(CustomerDto customerDto);
 
-    @PostMapping("/payment/card")
+    @PostMapping("/payments/card")
     ResponseEntity<CardPaymentResponseDto> makeCardPayment(CardPaymentDetailsDto cardPaymentDetailsDto);
 
-    @PostMapping("/payment/upi")
+    @PostMapping("/payments/upi")
     ResponseEntity<UpiPaymentResponseDto> makeUpiPayment(UpiPaymentDetailsDto upiPaymentDetailsDto);
 }
