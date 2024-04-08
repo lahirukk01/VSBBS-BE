@@ -50,7 +50,7 @@ public class AuthController {
         var userDetails = userService.findUserWithCredentials(loginRequestDto);
 
         if (userDetails == null) {
-            LOGGER.error("Invalid credentials: " + loginRequestDto.getUsername());
+            LOGGER.error("Invalid credentials: {}", loginRequestDto.getUsername());
             throw new CustomResourceNotFoundException("Invalid credentials");
         }
 
@@ -75,7 +75,7 @@ public class AuthController {
         var response = jwtService.validateTokenAndGetClaims(introspectRequestDto.getToken());
 
         if (response == null) {
-            LOGGER.error("Invalid token: " + introspectRequestDto.getToken());
+            LOGGER.error("Invalid token: {}", introspectRequestDto.getToken());
             throw new CustomBadRequestException("Invalid token");
         }
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
