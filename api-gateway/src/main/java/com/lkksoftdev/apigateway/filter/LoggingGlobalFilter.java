@@ -1,4 +1,4 @@
-package com.lkksoftdev.apigateway;
+package com.lkksoftdev.apigateway.filter;
 
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingGlobalFilter.class);
 
     @PostConstruct
@@ -30,6 +29,6 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return FilterOrder.LOGGING_GLOBAL_FILTER;
     }
 }
