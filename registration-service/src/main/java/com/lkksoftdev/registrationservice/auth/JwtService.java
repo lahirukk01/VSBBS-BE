@@ -40,15 +40,19 @@ public class JwtService {
     public String createToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         var userId = Objects.equals(userDetails.getOnlineAccountStatus(), OnlineAccountStatus.ACTIVE.toString()) ? userDetails.getId() : "";
+        var issuedAt = Instant.now();
+        var expiresAt = issuedAt.plusSeconds(60 * 60);
 
         var claims = JwtClaimsSet.builder()
                 .issuer("self")
-                .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plusSeconds(60 * 30))
+                .issuedAt(issuedAt)
+                .expiresAt(expiresAt)
                 .subject(authentication.getName())
                 .claim("userId", userId)
                 .claim("scope", createScope(authentication))
                 .claim("onlineAccountStatus", userDetails.getOnlineAccountStatus())
+                .claim("iat", issuedAt.getEpochSecond())
+                .claim("exp", expiresAt.getEpochSecond())
                 .build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
@@ -61,14 +65,15 @@ public class JwtService {
 
     public IntrospectResponseDataDto validateTokenAndGetClaims(String token) {
         CustomUserDetails userDetails;
-        LOGGER.info("Token: " + token);
+        LOGGER.info("Token: {}", token);
 
         try {
             var jwt = jwtDecoder.decode(token);
             String username = jwt.getClaimAsString("sub");
             userDetails = customUserDetailsService.loadUserByUsername(username);
         } catch (Exception e) {
-            throw new CustomBadRequestException("Invalid token");
+            LOGGER.error("Invalid token: {}, error: {}", token, e.getMessage());
+            throw new CustomBadRequestException("Invalid token: " + e.getMessage());
         }
 
         if (userDetails == null) {

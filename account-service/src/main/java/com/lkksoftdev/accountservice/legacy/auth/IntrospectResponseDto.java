@@ -1,4 +1,4 @@
-package com.lkksoftdev.accountservice.auth;
+package com.lkksoftdev.accountservice.legacy.auth;
 
 import com.lkksoftdev.accountservice.common.ErrorDetails;
 import lombok.Getter;

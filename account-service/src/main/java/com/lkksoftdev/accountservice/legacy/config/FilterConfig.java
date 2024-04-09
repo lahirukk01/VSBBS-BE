@@ -1,10 +1,9 @@
-package com.lkksoftdev.accountservice.config;
+package com.lkksoftdev.accountservice.legacy.config;
 
-import com.lkksoftdev.accountservice.auth.AuthTokenValidationFilter;
-import com.lkksoftdev.accountservice.feign.IntrospectClient;
+import com.lkksoftdev.accountservice.legacy.auth.AuthTokenValidationFilter;
+import com.lkksoftdev.accountservice.legacy.IntrospectClient;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 // Moving all authentication logic to api gateway
 //@Configuration

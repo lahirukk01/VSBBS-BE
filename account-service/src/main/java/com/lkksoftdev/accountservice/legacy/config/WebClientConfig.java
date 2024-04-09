@@ -1,4 +1,4 @@
-package com.lkksoftdev.accountservice.config;
+package com.lkksoftdev.accountservice.legacy.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
