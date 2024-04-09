@@ -74,12 +74,13 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
                     * online account status can access the account-service.
                     * */
                     if (path.startsWith("/account-service") &&
-                            introspectResponseDataDto.scope().equals("CUSTOMER") &&
-                        introspectResponseDataDto.onlineAccountStatus().equals("ACTIVE")) {
+                            isActiveCustomer(introspectResponseDataDto)) {
                             return chain.filter(exchange);
                     }
 
+                    if (path.startsWith("/beneficiary-service")) {
 
+                    }
 
                     exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     return exchange.getResponse().setComplete();
@@ -94,5 +95,14 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return FilterOrder.ROUTE_AUTH_FILTER;
+    }
+
+    private static boolean isActiveCustomer(IntrospectResponseDataDto introspectResponseDataDto) {
+        return introspectResponseDataDto.scope().equals("CUSTOMER") &&
+                introspectResponseDataDto.onlineAccountStatus().equals("ACTIVE");
+    }
+
+    private static boolean isManager(IntrospectResponseDataDto introspectResponseDataDto) {
+        return introspectResponseDataDto.scope().equals("MANAGER");
     }
 }
