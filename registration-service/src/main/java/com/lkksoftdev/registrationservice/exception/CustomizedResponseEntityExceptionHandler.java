@@ -27,7 +27,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<ResponseDto> handleAllExceptions(Exception ex, WebRequest request) {
-        LOGGER.error("Exception occurred: " + ex);
+        LOGGER.error("Exception occurred: {}", ex.toString());
         return buildResponseEntity("Something went wrong", request, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -46,7 +46,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public final ResponseEntity<ResponseDto> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException ex, WebRequest request) {
-        LOGGER.error("Exception occurred: " + ex);
+        LOGGER.error("Exception occurred: {}", ex.toString());
         return buildResponseEntity("Invalid path parameter type", request, HttpStatus.BAD_REQUEST);
     }
 }
