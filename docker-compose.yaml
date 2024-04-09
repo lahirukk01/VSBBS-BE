@@ -15,3 +15,9 @@ services:
       - ./database:/var/lib/mysql
     ports:
       - "3306:3306"
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
