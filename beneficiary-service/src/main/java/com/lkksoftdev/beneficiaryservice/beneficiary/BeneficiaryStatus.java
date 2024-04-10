@@ -13,4 +13,13 @@ public enum BeneficiaryStatus {
     BeneficiaryStatus(String status) {
         this.status = status;
     }
+
+    public static boolean isValidStatus(String status) {
+        for (BeneficiaryStatus beneficiaryStatus : BeneficiaryStatus.values()) {
+            if (beneficiaryStatus.getStatus().equals(status)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

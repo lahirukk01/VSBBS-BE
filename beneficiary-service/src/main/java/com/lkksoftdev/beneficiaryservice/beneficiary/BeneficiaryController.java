@@ -1,6 +1,7 @@
 package com.lkksoftdev.beneficiaryservice.beneficiary;
 
 import com.lkksoftdev.beneficiaryservice.common.ResponseDto;
+import com.lkksoftdev.beneficiaryservice.exception.CustomBadRequestException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
@@ -73,7 +74,11 @@ public class BeneficiaryController {
 
     // Approve or disapprove a beneficiary by manager
     @PutMapping("/beneficiaries/{beneficiaryId}")
-    ResponseEntity<?> updateBeneficiary(@Valid @RequestBody BeneficiaryApproveRequestDto beneficiaryApproveRequestDto, @PathVariable @Min(1) Long beneficiaryId) {
+    ResponseEntity<?> updateBeneficiary(@RequestBody BeneficiaryApproveRequestDto beneficiaryApproveRequestDto, @PathVariable @Min(1) Long beneficiaryId) {
+        if (!beneficiaryService.isValidBeneficiaryStatus(beneficiaryApproveRequestDto.status())) {
+            throw new CustomBadRequestException("Invalid status");
+        }
+
         Beneficiary beneficiary = beneficiaryService.updateBeneficiaryByManager(beneficiaryApproveRequestDto, beneficiaryId);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(beneficiary, Beneficiary.class), HttpStatus.OK);
     }

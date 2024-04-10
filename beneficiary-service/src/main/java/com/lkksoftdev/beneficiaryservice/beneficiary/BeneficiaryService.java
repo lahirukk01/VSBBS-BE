@@ -1,5 +1,6 @@
 package com.lkksoftdev.beneficiaryservice.beneficiary;
 
+import com.lkksoftdev.beneficiaryservice.exception.CustomResourceNotFoundException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,8 +39,8 @@ public class BeneficiaryService {
     }
 
     public Beneficiary updateBeneficiaryByManager(BeneficiaryApproveRequestDto beneficiaryApproveRequestDto, Long beneficiaryId) {
-        Beneficiary beneficiary = beneficiaryRepository.findById(beneficiaryId).orElseThrow();
-        beneficiary.setStatus(beneficiaryApproveRequestDto.status().getStatus());
+        Beneficiary beneficiary = beneficiaryRepository.findById(beneficiaryId).orElseThrow(() -> new CustomResourceNotFoundException("Beneficiary not found"));
+        beneficiary.setStatus(beneficiaryApproveRequestDto.status());
         beneficiary.setComments(beneficiaryApproveRequestDto.comments());
         beneficiary.setUpdatedAt(LocalDateTime.now());
         return beneficiaryRepository.save(beneficiary);
@@ -63,5 +64,9 @@ public class BeneficiaryService {
 
     public Beneficiary getBeneficiaryByCustomer(Long customerId, Long beneficiaryId) {
         return beneficiaryRepository.findByIdAndCustomerId(beneficiaryId, customerId).orElseThrow();
+    }
+
+    public boolean isValidBeneficiaryStatus(String status) {
+        return BeneficiaryStatus.isValidStatus(status);
     }
 }
