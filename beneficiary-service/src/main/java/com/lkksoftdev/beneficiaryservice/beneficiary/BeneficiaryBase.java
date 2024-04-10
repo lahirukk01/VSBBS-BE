@@ -1,5 +1,6 @@
 package com.lkksoftdev.beneficiaryservice.beneficiary;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
@@ -29,5 +30,6 @@ public class BeneficiaryBase {
     @NotNull
     @Email
     @Size(max = 50)
+    @Column(unique = true)
     protected String email;
 }
