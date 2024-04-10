@@ -97,6 +97,8 @@ public class AccountController {
         } else if (fromDate != null) {
             if (toDate == null) {
                 toDate = LocalDate.now();
+            } else if (toDate.isBefore(fromDate)) {
+                throw new CustomBadRequestException("toDate should be after fromDate");
             }
 
             transactions = transactionService.getTransactionsByAccountIdBetweenDates(accountId, fromDate, toDate);
