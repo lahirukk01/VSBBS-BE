@@ -17,11 +17,6 @@ public class BeneficiaryController {
         this.beneficiaryService = beneficiaryService;
     }
 
-    @GetMapping("/beneficiaries/health")
-    public String health() {
-        return "Beneficiary service is up and running";
-    }
-
     // Create a beneficiary by customer
     @PostMapping("/{customerId}/beneficiaries")
     ResponseEntity<?> createBeneficiary(@Valid @RequestBody BeneficiaryBase beneficiaryBase, @PathVariable Long customerId) {
