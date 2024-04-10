@@ -24,7 +24,6 @@ public class Beneficiary extends BeneficiaryBase {
 
     @NotNull
     @Size(max = 20)
-    @Column(length = 20)
     private String status;
 
     private String comments;
