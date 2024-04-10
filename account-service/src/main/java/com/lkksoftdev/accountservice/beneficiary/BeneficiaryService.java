@@ -1,5 +1,6 @@
 package com.lkksoftdev.accountservice.beneficiary;
 
+import com.lkksoftdev.accountservice.common.ResponseDto;
 import com.lkksoftdev.accountservice.feign.BeneficiaryClient;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,7 @@ public class BeneficiaryService {
         this.beneficiaryClient = beneficiaryClient;
     }
 
-    public BeneficiaryResponseDto fetchBeneficiary(Long customerId, Long beneficiaryId) {
-        return beneficiaryClient.getBeneficiaryByCustomer(customerId, beneficiaryId).getBody();
+    public ResponseDto fetchBeneficiary(Long customerId, Long beneficiaryId, String authHeader) {
+        return beneficiaryClient.getBeneficiaryByCustomer(customerId, beneficiaryId, authHeader).getBody();
     }
 }

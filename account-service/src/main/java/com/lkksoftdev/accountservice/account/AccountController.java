@@ -1,16 +1,18 @@
 package com.lkksoftdev.accountservice.account;
 
-import com.lkksoftdev.accountservice.beneficiary.BeneficiaryResponseDto;
 import com.lkksoftdev.accountservice.beneficiary.BeneficiaryService;
 import com.lkksoftdev.accountservice.beneficiary.BeneficiaryStatus;
 import com.lkksoftdev.accountservice.common.ResponseDto;
 import com.lkksoftdev.accountservice.exception.CustomBadRequestException;
 import com.lkksoftdev.accountservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.accountservice.transaction.Transaction;
+import com.lkksoftdev.accountservice.transaction.TransactionMethod;
 import com.lkksoftdev.accountservice.transaction.TransactionRequestDto;
 import com.lkksoftdev.accountservice.transaction.TransactionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,8 @@ public class AccountController {
     private final AccountService accountService;
     private final TransactionService transactionService;
     private final BeneficiaryService beneficiaryService;
+
+    private final Logger LOGGER = LoggerFactory.getLogger(AccountController.class);
 
     public AccountController(
             AccountService accountService,
@@ -50,7 +54,11 @@ public class AccountController {
     public ResponseEntity<?> addTransaction(
             @PathVariable @Min(1) Long customerId,
             @PathVariable @Min(1) Long accountId,
-            @Valid @RequestBody TransactionRequestDto transactionRequestDto) {
+            @Valid @RequestBody TransactionRequestDto transactionRequestDto, @RequestHeader("Authorization") String authHeader) {
+        if (!TransactionMethod.isValid(transactionRequestDto.getTransactionMethod())) {
+            throw new CustomBadRequestException("Invalid transaction method");
+        }
+
         var account = accountService.getCustomerAccount(customerId, accountId);
 
         if (account == null) {
@@ -61,16 +69,30 @@ public class AccountController {
             throw new CustomBadRequestException("Insufficient balance");
         }
 
-        BeneficiaryResponseDto beneficiaryResponseDto = beneficiaryService.fetchBeneficiary(
+        ResponseDto beneficiaryResponse = beneficiaryService.fetchBeneficiary(
             customerId,
-            transactionRequestDto.getBeneficiaryId());
+            transactionRequestDto.getBeneficiaryId(),
+            authHeader);
 
-        if (beneficiaryResponseDto == null || !beneficiaryResponseDto.status().equals(BeneficiaryStatus.APPROVED.getStatus())) {
-            throw new CustomBadRequestException("Beneficiary not found or not approved");
+        var data = beneficiaryResponse.getData();
+
+        if (data == null) {
+            LOGGER.error("Beneficiary not found for given data: customerId: {}, beneficiaryId: {}, accountId: {}",
+                    customerId, transactionRequestDto.getBeneficiaryId(), accountId);
+            throw new CustomBadRequestException("Beneficiary not found for given data");
         }
 
-        accountService.createTransaction(beneficiaryResponseDto.accountId(),
-                beneficiaryResponseDto.accountIfscCode(), account, transactionRequestDto);
+        Map<String, Object> beneficiaryData = (Map<String, Object>) ((Map<String, Object>) data).get("beneficiary");
+
+        if (!beneficiaryData.get("status").equals(BeneficiaryStatus.APPROVED.getStatus())) {
+            throw new CustomBadRequestException("Beneficiary is not approved");
+        }
+
+        Long beneficiaryAccountId = ((Integer) beneficiaryData.get("accountId")).longValue();
+        String beneficiaryAccountIfscCode = (String) beneficiaryData.get("accountIfscCode");
+
+        accountService.createTransaction(beneficiaryAccountId,
+                beneficiaryAccountIfscCode, account, transactionRequestDto);
 
         Map<String, String> responseData = Map.of("message", "Transaction completed successfully");
         return new ResponseEntity<>(new ResponseDto(responseData, null), HttpStatus.CREATED);
@@ -93,6 +115,10 @@ public class AccountController {
         List<Transaction> transactions;
 
         if (onDate != null) {
+            if (fromDate != null || toDate != null) {
+                throw new CustomBadRequestException("Invalid search parameters. onDate is already provided.");
+            }
+
             transactions = transactionService.getTransactionsByAccountIdBetweenDates(accountId, onDate, onDate);
         } else if (fromDate != null) {
             if (toDate == null) {

@@ -22,5 +22,5 @@ public class TransactionRequestDto {
     private String description;
 
     @NotNull
-    private TransactionMethod transactionMethod;
+    private String transactionMethod;
 }

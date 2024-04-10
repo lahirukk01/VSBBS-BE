@@ -30,7 +30,7 @@ public class TransactionService {
         Transaction transaction = new Transaction();
         transaction.setAccount(account);
         transaction.setTransactionType(TransactionType.DEBIT.getValue());
-        transaction.setTransactionMethod(transactionRequestDto.getTransactionMethod().name());
+        transaction.setTransactionMethod(transactionRequestDto.getTransactionMethod());
         transaction.setAmount(transactionRequestDto.getAmount());
         transaction.setEndBankAccountId(beneficiaryAccountId);
         transaction.setEndBankIfsc(beneficiaryIfscCode);
