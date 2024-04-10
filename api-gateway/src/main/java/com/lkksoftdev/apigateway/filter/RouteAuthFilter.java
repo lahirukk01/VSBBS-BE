@@ -23,6 +23,9 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
     private static final Logger LOGGER = LoggerFactory.getLogger(RouteAuthFilter.class);
     private final WebClient introspectWebClient;
 
+    private static final String accountServicePath = "/account-service";
+    private static final String beneficiaryServicePath = "/beneficiary-service";
+
     public RouteAuthFilter(WebClient introspectWebClient) {
         this.introspectWebClient = introspectWebClient;
     }
@@ -73,13 +76,24 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
                     * According to the project requirements, only customers with ACTIVE
                     * online account status can access the account-service.
                     * */
-                    if (path.startsWith("/account-service") &&
+                    if (path.startsWith(accountServicePath) &&
                             isActiveCustomer(introspectResponseDataDto)) {
                             return chain.filter(exchange);
                     }
 
-                    if (path.startsWith("/beneficiary-service")) {
+                    if (path.startsWith(beneficiaryServicePath)) {
+                        String routePath = path.substring(beneficiaryServicePath.length());
+                        String customerRouteRegex = "/\\d+/beneficiaries.*";
 
+                        if (routePath.matches(customerRouteRegex) && isActiveCustomer(introspectResponseDataDto)) {
+                            return chain.filter(exchange);
+                        }
+
+                        String managerRouteRegex = "/beneficiaries.*";
+
+                        if (routePath.matches(managerRouteRegex) && isManager(introspectResponseDataDto)) {
+                            return chain.filter(exchange);
+                        }
                     }
 
                     exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
