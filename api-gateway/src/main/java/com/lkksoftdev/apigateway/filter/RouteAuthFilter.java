@@ -25,6 +25,7 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
 
     private static final String accountServicePath = "/account-service";
     private static final String beneficiaryServicePath = "/beneficiary-service";
+    private static final String loanServicePath = "/loan-service";
 
     public RouteAuthFilter(WebClient introspectWebClient) {
         this.introspectWebClient = introspectWebClient;
@@ -82,25 +83,18 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
                     }
 
                     if (path.startsWith(beneficiaryServicePath)) {
-                        String routePath = path.substring(beneficiaryServicePath.length());
-                        String customerRouteRegex = "/\\d+/beneficiaries.*";
+                        return forwardRequest(path, beneficiaryServicePath, "beneficiaries", exchange, chain, introspectResponseDataDto);
+                    }
 
-                        if (routePath.matches(customerRouteRegex) && isActiveCustomer(introspectResponseDataDto)) {
-                            return chain.filter(exchange);
-                        }
-
-                        String managerRouteRegex = "/beneficiaries.*";
-
-                        if (routePath.matches(managerRouteRegex) && isManager(introspectResponseDataDto)) {
-                            return chain.filter(exchange);
-                        }
+                    if (path.startsWith(loanServicePath)) {
+                        return forwardRequest(path, loanServicePath, "loans", exchange, chain, introspectResponseDataDto);
                     }
 
                     exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     return exchange.getResponse().setComplete();
                 })
                 .onErrorResume(WebClientException.class, e -> {
-                    LOGGER.error("Error while introspecting token", e);
+                    LOGGER.error("Error while introspecting token: {}", e.toString());
                     exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     return exchange.getResponse().setComplete();
                 });
@@ -109,6 +103,30 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return FilterOrder.ROUTE_AUTH_FILTER;
+    }
+
+    private Mono<Void> forwardRequest(
+            String path,
+            String servicePath,
+            String controllerPrefix,
+            ServerWebExchange exchange,
+            GatewayFilterChain chain,
+            IntrospectResponseDataDto introspectResponseDataDto) {
+        String routePath = path.substring(servicePath.length());
+        String customerRouteRegex = "/\\d+/" + controllerPrefix + ".*";
+
+        if (routePath.matches(customerRouteRegex) && isActiveCustomer(introspectResponseDataDto)) {
+            return chain.filter(exchange);
+        }
+
+        String managerRouteRegex = "/" + controllerPrefix + ".*";
+
+        if (routePath.matches(managerRouteRegex) && isManager(introspectResponseDataDto)) {
+            return chain.filter(exchange);
+        }
+
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
     }
 
     private static boolean isActiveCustomer(IntrospectResponseDataDto introspectResponseDataDto) {
