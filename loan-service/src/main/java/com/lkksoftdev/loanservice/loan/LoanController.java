@@ -1,7 +1,6 @@
 package com.lkksoftdev.loanservice.loan;
 
 import com.lkksoftdev.loanservice.common.ResponseDto;
-import com.lkksoftdev.loanservice.customAnnotation.BearerToken;
 import com.lkksoftdev.loanservice.customAnnotation.validator.ValidPaymentDto;
 import com.lkksoftdev.loanservice.exception.CustomBadRequestException;
 import com.lkksoftdev.loanservice.feign.ExternalServiceClient;
@@ -68,27 +67,29 @@ public class LoanController {
     }
 
     @PostMapping("/{customerId}/loans/{loanId}/payments")
-    @BearerToken
-    ResponseEntity<?> createPayment(@RequestParam("bearerToken") String bearerToken, @ValidPaymentDto @RequestBody PaymentDto paymentDto, @PathVariable @Min(1) Long customerId, @PathVariable @Min(1) Long loanId) {
+    ResponseEntity<?> createPayment(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @ValidPaymentDto @RequestBody PaymentDto paymentDto,
+            @PathVariable @Min(1) Long customerId,
+            @PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findApprovedLoanByIdAndCustomerId(loanId, customerId);
 
-        var payment = loanService.createPayment(bearerToken, loan, paymentDto);
+        var payment = loanService.createPayment(authorizationHeader, loan, paymentDto);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(payment, Payment.class), HttpStatus.CREATED);
     }
 
     // Manager get all loans
     @GetMapping("/loans")
-    ResponseEntity<?> getAllLoans(@RequestParam(required = false) @Min(1) int page, @RequestParam(required = false) @Min(1) int size) {
+    ResponseEntity<?> getAllLoans(@RequestParam(required = false) @Min(0) int page, @RequestParam(required = false) @Min(1) int size) {
         List<Loan> loans = loanService.getAllLoans(page, size);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loans, Loan.class), HttpStatus.OK);
     }
 
     // Manager get loan credit score
     @GetMapping("/loans/{loanId}/credit-score")
-    @BearerToken
-    ResponseEntity<?> getLoanCreditScore(@RequestParam("bearerToken") String bearerToken, @PathVariable @Min(1) Long loanId) {
+    ResponseEntity<?> getLoanCreditScore(@RequestHeader("Authorization") String authorizationHeader, @PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findLoanById(loanId);
-        CustomerDto customerDto = customerClient.getCustomer(bearerToken, loan.getCustomerId()).getBody();
+        CustomerDto customerDto = customerClient.getCustomer(authorizationHeader, loan.getCustomerId()).getBody();
         CreditRatingResponseDto creditRatingResponseDto = externalServiceClient.getCreditRating(customerDto).getBody();
 
         if (creditRatingResponseDto == null) {

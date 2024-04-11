@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface AccountClient {
     @PostMapping("/{customerId}/accounts/{accountId}/transfer")
     ResponseEntity<AccountTransferResponseDto> transferFromSavingAccount(
-            @RequestHeader("Authorization") String bearerToken,
+            @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long customerId,
             @PathVariable Long accountId,
             AccountTransferDto accountTransferDto);

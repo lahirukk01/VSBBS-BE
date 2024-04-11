@@ -11,6 +11,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface CustomerClient {
     @GetMapping("/customers/{customerId}")
     ResponseEntity<CustomerDto> getCustomer(
-        @RequestHeader("Authorization") String bearerToken,
+        @RequestHeader("Authorization") String authorizationHeader,
         @PathVariable @Min(1) Long customerId);
 }

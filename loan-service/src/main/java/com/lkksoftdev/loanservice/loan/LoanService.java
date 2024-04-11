@@ -103,12 +103,12 @@ public class LoanService {
         externalServiceClient.makeCardPayment(cardPaymentDetailsDto).getBody();
     }
 
-    private void processPaymentBySavingsAccount(String bearerToken, double emiAmount, Long customerId, Long savingsAccountId) {
+    private void processPaymentBySavingsAccount(String authorizationHeader, double emiAmount, Long customerId, Long savingsAccountId) {
         var accountTransferDto = new AccountTransferDto(emiAmount);
-        accountClient.transferFromSavingAccount(bearerToken, customerId, savingsAccountId, accountTransferDto);
+        accountClient.transferFromSavingAccount(authorizationHeader, customerId, savingsAccountId, accountTransferDto);
     }
 
-    public Payment createPayment(String bearerToken, Loan loan, PaymentDto paymentDto) {
+    public Payment createPayment(String authorizationHeader, Loan loan, PaymentDto paymentDto) {
         double emiAmount = loan.calculateEmi();
 
         switch (paymentDto.paymentMethod()) {
@@ -116,7 +116,7 @@ public class LoanService {
             case "DEBIT_CARD":
                 processPaymentByCard(emiAmount, paymentDto);
             case "SAVINGS_ACCOUNT":
-                processPaymentBySavingsAccount(bearerToken, emiAmount, loan.getCustomerId(), paymentDto.savingsAccountId());
+                processPaymentBySavingsAccount(authorizationHeader, emiAmount, loan.getCustomerId(), paymentDto.savingsAccountId());
             case "UPI":
                 break;
             default:
