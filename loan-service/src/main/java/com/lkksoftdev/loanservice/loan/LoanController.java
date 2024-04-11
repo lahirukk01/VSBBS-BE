@@ -103,7 +103,7 @@ public class LoanController {
     // Manager set loan status
     @PutMapping("/loans/{loanId}/status")
     ResponseEntity<?> setLoanStatus(@PathVariable @Min(1) Long loanId, @RequestBody LoanStatusUpdateRequestDto statusDto) {
-        if (!loanService.isValidLoanDecisionStatus(statusDto.status())) {
+        if (!LoanStatus.isValidLoanDecisionStatus(statusDto.status())) {
             throw new CustomBadRequestException("Invalid loan status");
         }
 
