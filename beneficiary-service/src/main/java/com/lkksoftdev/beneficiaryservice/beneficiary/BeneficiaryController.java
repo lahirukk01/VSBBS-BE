@@ -57,7 +57,7 @@ public class BeneficiaryController {
     // Get all beneficiaries by manager
     @GetMapping("/beneficiaries")
     ResponseEntity<?> getAllBeneficiaries(
-            @RequestParam(value = "page", required = false) @Min(1) Integer page,
+            @RequestParam(value = "page", required = false) @Min(0) Integer page,
             @RequestParam(value = "size", required = false) @Min(1) Integer size,
             @RequestParam(value = "status", required = false) String status) {
         if (page == null) {
