@@ -14,4 +14,11 @@ public enum LoanStatus {
         this.value = value;
     }
 
+    public static boolean isValidLoanDecisionStatus(String decision) {
+        if (decision == null) {
+            return false;
+        }
+
+        return decision.equals(APPROVED.getValue()) || decision.equals(REJECTED.getValue());
+    }
 }

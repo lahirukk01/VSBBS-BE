@@ -77,14 +77,6 @@ public class LoanService {
                 .orElseThrow(() -> new CustomResourceNotFoundException("Loan with given details not found"));
     }
 
-    public boolean isValidLoanDecisionStatus(String status) {
-        if (status == null) {
-            return false;
-        }
-
-        return status.equals(LoanStatus.APPROVED.getValue()) || status.equals(LoanStatus.REJECTED.getValue());
-    }
-
     public void setLoanStatus(Loan loan, String status) {
         loan.setStatus(status);
         loan.setPaymentStatus(LoanPaymentStatus.PENDING.getValue());
