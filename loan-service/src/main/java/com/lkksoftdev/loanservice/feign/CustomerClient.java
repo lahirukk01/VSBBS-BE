@@ -1,6 +1,5 @@
 package com.lkksoftdev.loanservice.feign;
 
-import com.lkksoftdev.loanservice.common.ResponseDto;
 import jakarta.validation.constraints.Min;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
