@@ -3,9 +3,9 @@ package com.lkksoftdev.loanservice.loan;
 import com.lkksoftdev.loanservice.common.ResponseDto;
 import com.lkksoftdev.loanservice.customAnnotation.validator.ValidPaymentDto;
 import com.lkksoftdev.loanservice.exception.CustomBadRequestException;
+import com.lkksoftdev.loanservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.loanservice.feign.ExternalServiceClient;
 import com.lkksoftdev.loanservice.feign.CreditRatingResponseDto;
-import com.lkksoftdev.loanservice.feign.CustomerClient;
 import com.lkksoftdev.loanservice.feign.CustomerDto;
 import com.lkksoftdev.loanservice.payment.Payment;
 import com.lkksoftdev.loanservice.payment.PaymentDto;
@@ -16,30 +16,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 public class LoanController {
     private final LoanService loanService;
     private final ExternalServiceClient externalServiceClient;
-    private final CustomerClient customerClient;
 
-    public LoanController(LoanService loanService, ExternalServiceClient externalServiceClient, CustomerClient customerClient) {
+    public LoanController(LoanService loanService, ExternalServiceClient externalServiceClient) {
         this.loanService = loanService;
         this.externalServiceClient = externalServiceClient;
-        this.customerClient = customerClient;
     }
 
     @PostMapping("/{customerId}/loans")
-    ResponseEntity<?> createLoan(@Valid @RequestBody LoanBase loanBase, @PathVariable @Min(1) Long customerId) {
-        Long loanId = loanService.createLoan(loanBase, customerId);
-        return new ResponseEntity<>(new LoanMutateResponseDto(loanId), HttpStatus.CREATED);
+    ResponseEntity<?> createLoan(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody LoanBase loanBase, @PathVariable @Min(1) Long customerId) {
+        CustomerDto customerDto = loanService.getCustomer(authHeader, customerId);
+
+        if (customerDto == null) {
+            throw new CustomResourceNotFoundException("Customer not found");
+        }
+
+        Loan loan = loanService.createLoan(loanBase, customerId);
+
+        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loan, Loan.class), HttpStatus.CREATED);
     }
 
     @GetMapping("/{customerId}/loans")
     ResponseEntity<?> getLoans(@PathVariable @Min(1) Long customerId) {
         var loans = loanService.getLoans(customerId);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loans, Loan.class), HttpStatus.OK);
+    }
+
+    @GetMapping("/{customerId}/loans/{loanId}")
+    ResponseEntity<?> getLoan(@PathVariable @Min(1) Long customerId, @PathVariable @Min(1) Long loanId) {
+        Loan loan = loanService.findLoanByIdAndCustomerId(loanId, customerId);
+        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loan, Loan.class), HttpStatus.OK);
     }
 
     @PutMapping("/{customerId}/loans/{loanId}")
@@ -51,7 +61,7 @@ public class LoanController {
         }
 
         loanService.updateLoan(loanBase, loan);
-        return new ResponseEntity<>(new LoanMutateResponseDto(loan.getId()), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loan, Loan.class), HttpStatus.OK);
     }
 
     @DeleteMapping("/{customerId}/loans/{loanId}")
@@ -80,24 +90,43 @@ public class LoanController {
 
     // Manager get all loans
     @GetMapping("/loans")
-    ResponseEntity<?> getAllLoans(@RequestParam(required = false) @Min(0) int page, @RequestParam(required = false) @Min(1) int size) {
+    ResponseEntity<?> getAllLoans(@RequestParam(required = false) @Min(0) Integer page, @RequestParam(required = false) @Min(1) Integer size) {
+        if (page == null) {
+            page = 0;
+        }
+
+        if (size == null) {
+            size = 10;
+        }
+
         List<Loan> loans = loanService.getAllLoans(page, size);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loans, Loan.class), HttpStatus.OK);
+    }
+
+    // Manager get loan
+    @GetMapping("/loans/{loanId}")
+    ResponseEntity<?> getLoan(@PathVariable @Min(1) Long loanId) {
+        Loan loan = loanService.findLoanById(loanId);
+        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loan, Loan.class), HttpStatus.OK);
     }
 
     // Manager get loan credit score
     @GetMapping("/loans/{loanId}/credit-score")
     ResponseEntity<?> getLoanCreditScore(@RequestHeader("Authorization") String authorizationHeader, @PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findLoanById(loanId);
-        CustomerDto customerDto = customerClient.getCustomer(authorizationHeader, loan.getCustomerId()).getBody();
+        CustomerDto customerDto = loanService.getCustomer(authorizationHeader, loan.getCustomerId());
+
+        if (customerDto == null) {
+            throw new CustomResourceNotFoundException("Customer not found");
+        }
+
         CreditRatingResponseDto creditRatingResponseDto = externalServiceClient.getCreditRating(customerDto).getBody();
 
         if (creditRatingResponseDto == null) {
             throw new RuntimeException("Credit rating service is not available");
         }
 
-        Map<String, ?> creditScore = Map.of("creditScore", creditRatingResponseDto.creditRating());
-        return new ResponseEntity<>(new ResponseDto(creditScore, null), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseDto(creditRatingResponseDto, null), HttpStatus.OK);
     }
 
     // Manager set loan status
@@ -109,6 +138,6 @@ public class LoanController {
 
         Loan loan = loanService.findLoanById(loanId);
         loanService.setLoanStatus(loan, statusDto.status());
-        return new ResponseEntity<>(new LoanMutateResponseDto(loan.getId()), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loan, Loan.class), HttpStatus.OK);
     }
 }
