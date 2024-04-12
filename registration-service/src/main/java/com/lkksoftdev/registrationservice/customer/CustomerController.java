@@ -1,6 +1,5 @@
 package com.lkksoftdev.registrationservice.customer;
 
-import com.lkksoftdev.registrationservice.auth.CustomUserDetails;
 import com.lkksoftdev.registrationservice.common.ResponseDto;
 import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
@@ -20,7 +19,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @EnableMethodSecurity

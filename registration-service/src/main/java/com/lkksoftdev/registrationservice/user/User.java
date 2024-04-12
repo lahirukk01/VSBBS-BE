@@ -1,7 +1,6 @@
 package com.lkksoftdev.registrationservice.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.lkksoftdev.registrationservice.otp.Otp;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
