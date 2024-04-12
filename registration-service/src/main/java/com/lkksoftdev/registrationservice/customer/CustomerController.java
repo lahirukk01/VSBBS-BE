@@ -32,18 +32,6 @@ public class CustomerController {
         this.otpService = otpService;
     }
 
-    @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('SCOPE_CUSTOMER')")
-    public ResponseEntity<?> getProfile(Authentication authentication) {
-        var customerProfileResponse = customerService.findActiveCustomerProfileWithUsername(authentication.getName());
-
-        if (customerProfileResponse == null) {
-            throw new CustomResourceNotFoundException("Customer not found for the auth token");
-        }
-
-        return new ResponseEntity<>(new ResponseDto(customerProfileResponse, null), HttpStatus.OK);
-    }
-
     @PostMapping("/profile")
     @PreAuthorize("hasAuthority('SCOPE_CUSTOMER')")
     public ResponseEntity<?> updateProfile(@Valid @RequestBody CustomerProfileUpdateDto customerProfileUpdateDto, Authentication authentication) {
@@ -90,11 +78,12 @@ public class CustomerController {
             throw new CustomBadRequestException("Invalid customer id");
         }
 
-        if (!claims.get("onlineAccountStatus").equals("ACTIVE")) {
-            throw new CustomBadRequestException("User account is not active");
-        }
-
         var customer = customerService.findCustomerById(customerId);
+
+        if (userScope.equals("SCOPE_CUSTOMER") && !claims.get("onlineAccountStatus").equals("ACTIVE")) {
+            customer.setEmail(null);
+            customer.setMobile(null);
+        }
 
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(customer, "Customer"), HttpStatus.OK);
     }
