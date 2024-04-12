@@ -50,6 +50,32 @@ public class AccountController {
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(account, Account.class), HttpStatus.OK);
     }
 
+    @PostMapping("/{customerId}/accounts/{accountId}/loan-payment")
+    public ResponseEntity<?> makeLoanPayment(
+            @PathVariable @Min(1) Long customerId,
+            @PathVariable @Min(1) Long accountId,
+            @RequestBody LoanPaymentRequestDto loanPaymentRequestDto) {
+        double emiAmount = loanPaymentRequestDto.emiAmount();
+
+        if (emiAmount <= 0) {
+            throw new CustomBadRequestException("Invalid amount");
+        }
+
+        var account = accountService.getCustomerAccount(customerId, accountId);
+
+        if (account == null) {
+            throw new CustomResourceNotFoundException("Account for the customer not found");
+        }
+
+        if (account.getBalance() < emiAmount) {
+            throw new CustomBadRequestException("Insufficient balance");
+        }
+
+        accountService.makeLoanPayment(account, loanPaymentRequestDto);
+
+        return new ResponseEntity<>(new ResponseDto(Map.of("message", "Loan payment successful"), null), HttpStatus.OK);
+    }
+
     @PostMapping("/{customerId}/accounts/{accountId}/transactions")
     public ResponseEntity<?> addTransaction(
             @PathVariable @Min(1) Long customerId,

@@ -1,7 +1,6 @@
 package com.lkksoftdev.loanservice.loan;
 
 import com.lkksoftdev.loanservice.common.ResponseDto;
-import com.lkksoftdev.loanservice.customAnnotation.validator.ValidPaymentDto;
 import com.lkksoftdev.loanservice.exception.CustomBadRequestException;
 import com.lkksoftdev.loanservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.loanservice.feign.ExternalServiceClient;
@@ -79,7 +78,7 @@ public class LoanController {
     @PostMapping("/{customerId}/loans/{loanId}/payments")
     ResponseEntity<?> createPayment(
             @RequestHeader("Authorization") String authorizationHeader,
-            @ValidPaymentDto @RequestBody PaymentDto paymentDto,
+            @RequestBody PaymentDto paymentDto,
             @PathVariable @Min(1) Long customerId,
             @PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findApprovedLoanByIdAndCustomerId(loanId, customerId);

@@ -70,4 +70,14 @@ public class AccountService {
     private List<AccountDto> convertAccountsToDto(List<Account> accounts) {
         return accounts.stream().map(this::convertAccountToDto).collect(Collectors.toList());
     }
+
+    public void makeLoanPayment(Account account, LoanPaymentRequestDto loanPaymentRequestDto) {
+        transactionService.createLoanPaymentTransaction(account,
+                loanPaymentRequestDto.emiAmount(),
+                loanPaymentRequestDto.loanId(),
+                loanPaymentRequestDto.description());
+        account.setBalance(account.getBalance() - loanPaymentRequestDto.emiAmount());
+        account.setUpdatedAt(LocalDateTime.now());
+        accountRepository.save(account);
+    }
 }

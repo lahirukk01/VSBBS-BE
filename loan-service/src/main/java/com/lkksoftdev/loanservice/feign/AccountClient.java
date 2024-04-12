@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "accountClient", url = "${services.account.urls.base}")
 public interface AccountClient {
-    @PostMapping("/{customerId}/accounts/{accountId}/transfer")
+    @PostMapping("/{customerId}/accounts/{accountId}/loan-payment")
     ResponseEntity<AccountTransferResponseDto> transferFromSavingAccount(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long customerId,

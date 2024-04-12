@@ -20,4 +20,8 @@ public class PaymentService {
         payment.setPaymentTimestamp(LocalDateTime.now());
         return paymentRepository.save(payment);
     }
+
+    public int getTotalNumberOfPayments(Long id) {
+        return paymentRepository.countAllByLoanId(id);
+    }
 }

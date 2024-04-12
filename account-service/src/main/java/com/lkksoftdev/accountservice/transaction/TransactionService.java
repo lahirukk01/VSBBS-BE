@@ -38,4 +38,21 @@ public class TransactionService {
         transaction.setCreatedAt(LocalDateTime.now());
         transactionRepository.save(transaction);
     }
+
+    public void createLoanPaymentTransaction(
+            Account account,
+            double emiAmount,
+            Long loanId,
+            String description) {
+        Transaction transaction = new Transaction();
+        transaction.setAccount(account);
+        transaction.setTransactionType(TransactionType.DEBIT.getValue());
+        transaction.setTransactionMethod(TransactionMethod.INTERNAL.getValue());
+        transaction.setAmount(emiAmount);
+        transaction.setEndBankAccountId(loanId);
+        transaction.setEndBankIfsc("SELF");
+        transaction.setDescription(description);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transactionRepository.save(transaction);
+    }
 }

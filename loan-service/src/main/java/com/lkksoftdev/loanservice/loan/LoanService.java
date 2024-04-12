@@ -1,5 +1,6 @@
 package com.lkksoftdev.loanservice.loan;
 
+import com.lkksoftdev.loanservice.exception.CustomBadRequestException;
 import com.lkksoftdev.loanservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.loanservice.feign.*;
 import com.lkksoftdev.loanservice.payment.Payment;
@@ -91,14 +92,22 @@ public class LoanService {
     }
 
     private void processPaymentByCard(double emiAmount, PaymentDto paymentDto) {
+        if (paymentDto.cardNumber() == null || paymentDto.cardHolderName() == null
+                || paymentDto.cardExpiry() == null || paymentDto.cardCvv() == null) {
+            throw new CustomBadRequestException("Invalid card details");
+        }
+
         CardPaymentDetailsDto cardPaymentDetailsDto = new CardPaymentDetailsDto(paymentDto.cardNumber(),
                 paymentDto.cardHolderName(), paymentDto.cardExpiry(), paymentDto.cardCvv(), emiAmount);
 
         externalServiceClient.makeCardPayment(cardPaymentDetailsDto).getBody();
     }
 
-    private void processPaymentBySavingsAccount(String authorizationHeader, double emiAmount, Long customerId, Long savingsAccountId) {
-        var accountTransferDto = new AccountTransferDto(emiAmount);
+    private void processPaymentBySavingsAccount(String authorizationHeader, double emiAmount, Long loanId, Long customerId, Long savingsAccountId) {
+        if (savingsAccountId == null || customerId == null) {
+            throw new CustomBadRequestException("Invalid savings account details");
+        }
+        var accountTransferDto = new AccountTransferDto(emiAmount, loanId, "Loan EMI payment");
         accountClient.transferFromSavingAccount(authorizationHeader, customerId, savingsAccountId, accountTransferDto);
     }
 
@@ -110,13 +119,22 @@ public class LoanService {
             case "DEBIT_CARD":
                 processPaymentByCard(emiAmount, paymentDto);
             case "SAVINGS_ACCOUNT":
-                processPaymentBySavingsAccount(authorizationHeader, emiAmount, loan.getCustomerId(), paymentDto.savingsAccountId());
+                processPaymentBySavingsAccount(authorizationHeader, emiAmount, loan.getId(), loan.getCustomerId(), paymentDto.savingsAccountId());
             case "UPI":
                 break;
             default:
                 throw new CustomResourceNotFoundException("Invalid payment method");
         }
-        return paymentService.createPayment(loan.getId(), emiAmount, paymentDto.paymentMethod());
+
+        var payment = paymentService.createPayment(loan.getId(), emiAmount, paymentDto.paymentMethod());
+        var totalNumberOfPayments = paymentService.getTotalNumberOfPayments(loan.getId());
+
+        if (totalNumberOfPayments == loan.getNumberOfEmis()) {
+            loan.setPaymentStatus(LoanPaymentStatus.PAID.getValue());
+            loanRepository.save(loan);
+        }
+
+        return payment;
     }
 
     public CustomerDto getCustomer(String authorizationHeader, Long customerId) {

@@ -1,8 +1,12 @@
 package com.lkksoftdev.accountservice.transaction;
 
+import lombok.Getter;
+
+@Getter
 public enum TransactionMethod {
     NEFT("NEFT"),
     IMPS("UPI"),
+    INTERNAL("INTERNAL"),
     RTGS("RTGS");
 
     private final String value;
