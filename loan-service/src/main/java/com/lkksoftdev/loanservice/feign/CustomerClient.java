@@ -1,5 +1,6 @@
 package com.lkksoftdev.loanservice.feign;
 
+import com.lkksoftdev.loanservice.common.ResponseDto;
 import jakarta.validation.constraints.Min;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -7,10 +8,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "customerClient", url = "${services.customer.urls.base}")
+@FeignClient(name = "customerClient", url = "${services.registration.urls.base}")
 public interface CustomerClient {
     @GetMapping("/customers/{customerId}")
-    ResponseEntity<CustomerDto> getCustomer(
+    ResponseEntity<String> getCustomer(
         @RequestHeader("Authorization") String authorizationHeader,
         @PathVariable @Min(1) Long customerId);
 }

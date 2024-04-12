@@ -1,13 +1,11 @@
 package com.lkksoftdev.loanservice.loan;
 
 import com.lkksoftdev.loanservice.exception.CustomResourceNotFoundException;
-import com.lkksoftdev.loanservice.feign.AccountClient;
-import com.lkksoftdev.loanservice.feign.AccountTransferDto;
-import com.lkksoftdev.loanservice.feign.CardPaymentDetailsDto;
-import com.lkksoftdev.loanservice.feign.ExternalServiceClient;
+import com.lkksoftdev.loanservice.feign.*;
 import com.lkksoftdev.loanservice.payment.Payment;
 import com.lkksoftdev.loanservice.payment.PaymentDto;
 import com.lkksoftdev.loanservice.payment.PaymentService;
+import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,28 +19,31 @@ public class LoanService {
     private final ExternalServiceClient externalServiceClient;
     private final PaymentService paymentService;
     private final AccountClient accountClient;
+    private final CustomerClient customerClient;
 
     public LoanService(
             LoanRepository loanRepository,
             ExternalServiceClient externalServiceClient,
-            PaymentService paymentService, AccountClient accountClient) {
+            PaymentService paymentService, AccountClient accountClient,
+            CustomerClient customerClient) {
         this.loanRepository = loanRepository;
         this.externalServiceClient = externalServiceClient;
         this.paymentService = paymentService;
         this.accountClient = accountClient;
+        this.customerClient = customerClient;
     }
 
-    public Long createLoan(LoanBase loanBase, Long customerId) {
+    public Loan createLoan(LoanBase loanBase, Long customerId) {
         Loan loan = new Loan();
         loan.setCustomerId(customerId);
         loan.setAmount(loanBase.getAmount());
         loan.setPurpose(loanBase.getPurpose());
         loan.setNumberOfEmis(loanBase.getNumberOfEmis());
         loan.setStatus(LoanStatus.IN_PROGRESS.getValue());
+        loan.setPaymentStatus(LoanPaymentStatus.NA.getValue());
         loan.setCreatedAt(LocalDateTime.now());
         loan.setUpdatedAt(LocalDateTime.now());
-        loanRepository.save(loan);
-        return loan.getId();
+        return loanRepository.save(loan);
     }
 
     public List<Loan> getLoans(Long customerId) {
@@ -79,7 +80,8 @@ public class LoanService {
 
     public void setLoanStatus(Loan loan, String status) {
         loan.setStatus(status);
-        loan.setPaymentStatus(LoanPaymentStatus.PENDING.getValue());
+        var paymentStatus = status.equals(LoanStatus.APPROVED.getValue()) ? LoanPaymentStatus.PENDING.getValue() : LoanPaymentStatus.NA.getValue();
+        loan.setPaymentStatus(paymentStatus);
         loanRepository.save(loan);
     }
 
@@ -115,5 +117,34 @@ public class LoanService {
                 throw new CustomResourceNotFoundException("Invalid payment method");
         }
         return paymentService.createPayment(loan.getId(), emiAmount, paymentDto.paymentMethod());
+    }
+
+    public CustomerDto getCustomer(String authorizationHeader, Long customerId) {
+        String customerResponseString = customerClient.getCustomer(authorizationHeader, customerId).getBody();
+        var customer = getCustomerObject(customerResponseString);
+
+        if (customer == null) {
+            throw new RuntimeException("Customer not found");
+        }
+
+        return new CustomerDto((String) customer.get("firstName"), (String) customer.get("lastName"), (String) customer.get("mobile"));
+    }
+
+    private static JSONObject getCustomerObject(String customerResponseString) {
+        if (customerResponseString == null) {
+            throw new CustomResourceNotFoundException("Customer not found");
+        }
+
+        JSONObject customerResponseJson = new JSONObject(customerResponseString);
+        var data = customerResponseJson.get("data");
+
+        if (customerResponseJson.get("data") == null) {
+            throw new CustomResourceNotFoundException("Customer not found");
+        }
+
+        if (data == null) {
+            throw new RuntimeException("Customer not found");
+        }
+        return (JSONObject)((JSONObject)data).get("customer");
     }
 }
