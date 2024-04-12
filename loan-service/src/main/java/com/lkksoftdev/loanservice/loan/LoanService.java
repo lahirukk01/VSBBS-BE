@@ -87,7 +87,7 @@ public class LoanService {
     }
 
     public Loan findApprovedLoanByIdAndCustomerId(Long loanId, Long customerId) {
-        return loanRepository.findByIdAndCustomerIdAndStatus(loanId, customerId, LoanStatus.APPROVED.getValue())
+        return loanRepository.findByIdAndCustomerIdAndStatusAndPaymentStatus(loanId, customerId, LoanStatus.APPROVED.getValue(), LoanPaymentStatus.PENDING.getValue())
             .orElseThrow(() -> new CustomResourceNotFoundException("Approved loan with given details not found"));
     }
 
@@ -118,8 +118,10 @@ public class LoanService {
             case "CREDIT_CARD":
             case "DEBIT_CARD":
                 processPaymentByCard(emiAmount, paymentDto);
+                break;
             case "SAVINGS_ACCOUNT":
                 processPaymentBySavingsAccount(authorizationHeader, emiAmount, loan.getId(), loan.getCustomerId(), paymentDto.savingsAccountId());
+                break;
             case "UPI":
                 break;
             default:
