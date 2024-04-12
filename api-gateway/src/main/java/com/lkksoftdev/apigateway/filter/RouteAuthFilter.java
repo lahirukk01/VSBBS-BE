@@ -115,7 +115,9 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
         String routePath = path.substring(servicePath.length());
         String customerRouteRegex = "/\\d+/" + controllerPrefix + ".*";
 
-        if (routePath.matches(customerRouteRegex) && isActiveCustomer(introspectResponseDataDto)) {
+        if (routePath.matches(customerRouteRegex)
+                && isActiveCustomer(introspectResponseDataDto)
+            && introspectResponseDataDto.userId().equals(routePath.split("/")[1])) {
             return chain.filter(exchange);
         }
 
