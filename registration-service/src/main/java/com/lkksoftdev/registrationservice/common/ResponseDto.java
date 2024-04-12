@@ -20,8 +20,18 @@ public class ResponseDto {
     }
 
     public static ResponseDto BuildSuccessResponse(Object data, @NotNull Class<?> customEntityClass) {
-        Map<String, Object> result = new HashMap<>();
         String className = customEntityClass.getSimpleName().toLowerCase();
+        return buildSuccessResponse(data, className);
+    }
+
+    public static ResponseDto BuildSuccessResponse(Object data, String customEntityClassName) {
+        String className = customEntityClassName.toLowerCase();
+        return buildSuccessResponse(data, className);
+    }
+
+    private static ResponseDto buildSuccessResponse(Object data, String customEntityClassName) {
+        Map<String, Object> result = new HashMap<>();
+        String className = customEntityClassName.toLowerCase();
 
         if (data instanceof List<?> list) {
             result.put(className + "s", list);

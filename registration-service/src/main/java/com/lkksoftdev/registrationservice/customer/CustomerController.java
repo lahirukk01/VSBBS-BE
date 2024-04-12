@@ -1,5 +1,6 @@
 package com.lkksoftdev.registrationservice.customer;
 
+import com.lkksoftdev.registrationservice.auth.CustomUserDetails;
 import com.lkksoftdev.registrationservice.common.ResponseDto;
 import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
@@ -14,14 +15,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @EnableMethodSecurity
-@RequestMapping("/customer")
+@RequestMapping("/customers")
 public class CustomerController {
     private final CustomerService customerService;
     private final OtpService otpService;
@@ -74,18 +77,27 @@ public class CustomerController {
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
-    // Manager get customer info
+    // Get customer info
     @GetMapping("/{customerId}")
-    @PreAuthorize("hasAuthority('SCOPE_MANAGER')")
-    public ResponseEntity<?> getCustomerInfo(@PathVariable @Min(1) Integer customerId) {
+    public ResponseEntity<?> getCustomerInfo(@PathVariable @Min(1) Integer customerId, Authentication authentication) {
+        String userScope = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElseThrow(() -> new CustomBadRequestException("Invalid token"));
+
+        JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
+        Map<String, Object> claims = jwtAuthenticationToken.getTokenAttributes();
+
+        if (userScope.equals("SCOPE_CUSTOMER") && !Long.valueOf(customerId).equals(claims.get("userId"))) {
+            throw new CustomBadRequestException("Invalid customer id");
+        }
+
+        if (!claims.get("onlineAccountStatus").equals("ACTIVE")) {
+            throw new CustomBadRequestException("User account is not active");
+        }
+
         var customer = customerService.findCustomerById(customerId);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("firstName", customer.getFirstName());
-        response.put("lastName", customer.getLastName());
-        response.put("email", customer.getEmail());
-        response.put("mobile", customer.getMobile());
-
-        return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(customer, "Customer"), HttpStatus.OK);
     }
 }

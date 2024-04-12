@@ -1,5 +1,7 @@
 package com.lkksoftdev.registrationservice.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.lkksoftdev.registrationservice.otp.Otp;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -20,6 +22,7 @@ public class User extends UserBase {
     private Integer id;
 
     @NotNull
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -28,6 +31,7 @@ public class User extends UserBase {
     private String onlineAccountStatus;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Otp> otps;
 
     public String toString() {

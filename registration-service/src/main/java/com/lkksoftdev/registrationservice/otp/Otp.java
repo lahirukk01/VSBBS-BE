@@ -1,5 +1,6 @@
 package com.lkksoftdev.registrationservice.otp;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.lkksoftdev.registrationservice.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class Otp {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
+    @JsonManagedReference
     private User user;
 
     private boolean verified;
