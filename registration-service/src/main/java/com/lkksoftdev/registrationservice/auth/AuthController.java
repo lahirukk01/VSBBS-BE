@@ -7,6 +7,7 @@ import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.registrationservice.otp.OtpDto;
 import com.lkksoftdev.registrationservice.otp.OtpService;
+import com.lkksoftdev.registrationservice.user.OnlineAccountStatus;
 import com.lkksoftdev.registrationservice.user.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ public class AuthController {
             throw new CustomResourceNotFoundException("Customer not found with given details: " + customerOnlineRegistrationDto.getSafeSummaryString());
         }
 
-        var response = otpService.setOtpForCustomer(user);
+        var response = otpService.setOtpForCustomer(user, OnlineAccountStatus.PENDING);
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
@@ -62,7 +63,7 @@ public class AuthController {
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody OtpDto otpDto) {
         var otp = otpService.getOtpByCodeAndOwnerIdentifier(otpDto);
 
-        customerService.activateCustomer(otp, otpService);
+        customerService.registerCustomer(otp, otpService);
 
         var userDetails = userService.findUserWithUsername(otp.getUser().getUsername());
         JwtResponseDto response = userService.getJwtResponseDto(userDetails);

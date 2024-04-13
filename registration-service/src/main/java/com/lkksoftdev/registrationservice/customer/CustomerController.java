@@ -35,7 +35,7 @@ public class CustomerController {
     @PostMapping("/profile")
     @PreAuthorize("hasAuthority('SCOPE_CUSTOMER')")
     public ResponseEntity<?> updateProfile(@Valid @RequestBody CustomerProfileUpdateDto customerProfileUpdateDto, Authentication authentication) {
-        var customer = customerService.findActiveCustomerWithUsername(authentication.getName());
+        var customer = customerService.findCustomerWithUsername(authentication.getName());
 
         if (customer == null) {
             throw new CustomResourceNotFoundException("Customer not found for the auth token");

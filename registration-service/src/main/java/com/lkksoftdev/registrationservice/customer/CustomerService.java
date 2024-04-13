@@ -1,5 +1,6 @@
 package com.lkksoftdev.registrationservice.customer;
 
+import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.registrationservice.otp.Otp;
 import com.lkksoftdev.registrationservice.otp.OtpService;
@@ -40,30 +41,19 @@ public class CustomerService {
             return null;
         }
 
-        return user;
-    }
-
-    public CustomerProfileResponseDto findActiveCustomerProfileWithUsername(String username) {
-        var user = findActiveCustomerWithUsername(username);
-
-        return new CustomerProfileResponseDto(user.getUsername(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getOnlineAccountStatus());
-    }
-
-    public User findActiveCustomerWithUsername(String username) {
-        var user = userRepository.findByUsername(username);
-
-        if (user == null || !Objects.equals(user.getOnlineAccountStatus(), OnlineAccountStatus.ACTIVE.toString())) {
-            return null;
+        if (user.getOnlineAccountStatus().equals(OnlineAccountStatus.ACTIVE.toString())) {
+            throw new CustomBadRequestException("User is already registered");
         }
 
         return user;
     }
 
+    public User findCustomerWithUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     @Transactional
-    public void activateCustomer(Otp otp, OtpService otpService) {
+    public void registerCustomer(Otp otp, OtpService otpService) {
         var user = otp.getUser();
         user.setOnlineAccountStatus(OnlineAccountStatus.ID_VERIFICATION_PENDING.toString());
         userRepository.save(user);
@@ -71,9 +61,9 @@ public class CustomerService {
     }
 
     public boolean areProfileDetailsValid(CustomerProfileUpdateDto customerProfileUpdateDto, User user) {
-        return Objects.equals(customerProfileUpdateDto.getId(), user.getId())
-                && Objects.equals(customerProfileUpdateDto.getEmail(), user.getEmail())
-                && Objects.equals(customerProfileUpdateDto.getMobile(), user.getMobile());
+        return user.getId().equals(customerProfileUpdateDto.getId())
+                && user.getEmail().equals(customerProfileUpdateDto.getEmail())
+                && user.getMobile().equals(customerProfileUpdateDto.getMobile());
     }
 
     @Transactional
@@ -84,7 +74,7 @@ public class CustomerService {
         user.setOnlineAccountStatus(OnlineAccountStatus.UPDATE_REQUESTED.toString());
         userRepository.save(user);
 
-        return otpService.setOtpForCustomer(user);
+        return otpService.setOtpForCustomer(user, OnlineAccountStatus.UPDATE_REQUESTED);
     }
 
     @Transactional
