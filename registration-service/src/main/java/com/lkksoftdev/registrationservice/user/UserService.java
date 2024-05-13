@@ -1,9 +1,6 @@
 package com.lkksoftdev.registrationservice.user;
 
-import com.lkksoftdev.registrationservice.auth.JwtResponseDto;
-import com.lkksoftdev.registrationservice.auth.JwtService;
-import com.lkksoftdev.registrationservice.auth.LoginRequestDto;
-import com.lkksoftdev.registrationservice.auth.CustomUserDetailsService;
+import com.lkksoftdev.registrationservice.auth.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,8 +21,8 @@ public class UserService {
         this.jwtService = jwtService;
     }
 
-    public UserDetails findUserWithCredentials(LoginRequestDto loginRequestDto) {
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(loginRequestDto.getUsername());
+    public CustomUserDetails findUserWithCredentials(LoginRequestDto loginRequestDto) {
+        CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(loginRequestDto.getUsername());
 
         if (userDetails == null || !passwordEncoder.matches(loginRequestDto.getPassword(), userDetails.getPassword())) {
             return null;
@@ -34,7 +31,7 @@ public class UserService {
         return userDetails;
     }
 
-    public UserDetails findUserWithUsername(String username) {
+    public CustomUserDetails findUserWithUsername(String username) {
         return customUserDetailsService.loadUserByUsername(username);
     }
 

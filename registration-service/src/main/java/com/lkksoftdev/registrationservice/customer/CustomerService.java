@@ -4,7 +4,6 @@ import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.registrationservice.otp.Otp;
 import com.lkksoftdev.registrationservice.otp.OtpService;
-import com.lkksoftdev.registrationservice.user.OnlineAccountStatus;
 import com.lkksoftdev.registrationservice.user.User;
 import com.lkksoftdev.registrationservice.user.UserRepository;
 import jakarta.transaction.Transactional;
@@ -41,7 +40,7 @@ public class CustomerService {
             return null;
         }
 
-        if (user.getOnlineAccountStatus().equals(OnlineAccountStatus.ACTIVE.toString())) {
+        if (user.getOnlineAccountStatus().equals(User.OnlineAccountStatus.ACTIVE.toString())) {
             throw new CustomBadRequestException("User is already registered");
         }
 
@@ -55,7 +54,7 @@ public class CustomerService {
     @Transactional
     public void registerCustomer(Otp otp, OtpService otpService) {
         var user = otp.getUser();
-        user.setOnlineAccountStatus(OnlineAccountStatus.ID_VERIFICATION_PENDING.toString());
+        user.setOnlineAccountStatus(User.OnlineAccountStatus.ID_VERIFICATION_PENDING.toString());
         userRepository.save(user);
         otpService.consumeOtp(otp);
     }
@@ -71,15 +70,15 @@ public class CustomerService {
         user.setFirstName(customerProfileUpdateDto.getFirstName());
         user.setLastName(customerProfileUpdateDto.getLastName());
         user.setUsername(customerProfileUpdateDto.getUsername());
-        user.setOnlineAccountStatus(OnlineAccountStatus.UPDATE_REQUESTED.toString());
+        user.setOnlineAccountStatus(User.OnlineAccountStatus.UPDATE_REQUESTED.toString());
         userRepository.save(user);
 
-        return otpService.setOtpForCustomer(user, OnlineAccountStatus.UPDATE_REQUESTED);
+        return otpService.setOtpForCustomer(user, User.OnlineAccountStatus.UPDATE_REQUESTED);
     }
 
     @Transactional
     public Map<String, String> completeProfileUpdate(User user, Otp otp) {
-        user.setOnlineAccountStatus(OnlineAccountStatus.ACTIVE.toString());
+        user.setOnlineAccountStatus(User.OnlineAccountStatus.ACTIVE.toString());
         userRepository.save(user);
         otpService.consumeOtp(otp);
 

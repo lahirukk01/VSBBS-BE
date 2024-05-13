@@ -8,6 +8,7 @@ import java.util.Collection;
 
 @Getter
 public class CustomUserDetails extends User {
+    @Getter
     private final String onlineAccountStatus;
     private final Integer id;
 

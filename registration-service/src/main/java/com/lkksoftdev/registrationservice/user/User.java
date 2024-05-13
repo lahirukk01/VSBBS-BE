@@ -16,6 +16,10 @@ import java.util.List;
 @Getter
 @Setter
 public class User extends UserBase {
+    public enum OnlineAccountStatus {
+        PENDING, ACTIVE, SUSPENDED, ID_VERIFICATION_PENDING, UPDATE_REQUESTED
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

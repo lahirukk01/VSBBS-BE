@@ -2,7 +2,7 @@ package com.lkksoftdev.registrationservice.auth;
 
 
 import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
-import com.lkksoftdev.registrationservice.user.OnlineAccountStatus;
+import com.lkksoftdev.registrationservice.user.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -25,9 +25,9 @@ public class JwtService {
     private final Logger LOGGER = LoggerFactory.getLogger(JwtService.class);
 
     private static final List<String> allowedOnlineAccountStatuses = List.of(
-            OnlineAccountStatus.ACTIVE.toString(),
-            OnlineAccountStatus.UPDATE_REQUESTED.toString(),
-            OnlineAccountStatus.ID_VERIFICATION_PENDING.toString()
+            User.OnlineAccountStatus.ACTIVE.toString(),
+            User.OnlineAccountStatus.UPDATE_REQUESTED.toString(),
+            User.OnlineAccountStatus.ID_VERIFICATION_PENDING.toString()
     );
 
     public JwtService(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, CustomUserDetailsService customUserDetailsService) {
@@ -39,7 +39,7 @@ public class JwtService {
 
     public String createToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        var userId = Objects.equals(userDetails.getOnlineAccountStatus(), OnlineAccountStatus.ACTIVE.toString()) ? userDetails.getId() : "";
+        var userId = Objects.equals(userDetails.getOnlineAccountStatus(), User.OnlineAccountStatus.ACTIVE.toString()) ? userDetails.getId() : "";
         var issuedAt = Instant.now();
         var expiresAt = issuedAt.plusSeconds(60 * 60);
 

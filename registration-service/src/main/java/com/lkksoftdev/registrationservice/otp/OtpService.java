@@ -1,7 +1,6 @@
 package com.lkksoftdev.registrationservice.otp;
 
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
-import com.lkksoftdev.registrationservice.user.OnlineAccountStatus;
 import com.lkksoftdev.registrationservice.user.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ public class OtpService {
         return String.valueOf(number);
     }
 
-    public Map<String, String> setOtpForCustomer(User user, OnlineAccountStatus currentStatus) {
+    public Map<String, String> setOtpForCustomer(User user, User.OnlineAccountStatus currentStatus) {
         String ownerIdentifier = UUID.randomUUID().toString();
         var otp = new Otp(generateOtpCode(), ownerIdentifier, user);
         LOGGER.info("Generated OTP: {}, Status: {}", otp, currentStatus.toString());
@@ -38,7 +37,7 @@ public class OtpService {
         String message;
         String sesEmailSubject;
 
-        if (currentStatus.equals(OnlineAccountStatus.PENDING)) {
+        if (currentStatus.equals(User.OnlineAccountStatus.PENDING)) {
             message = String.format("Otp for registration is %s and client id: %s", otp.getCode(), user.getId());
             sesEmailSubject = "Otp for registration";
         } else {

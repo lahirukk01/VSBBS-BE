@@ -7,7 +7,7 @@ import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
 import com.lkksoftdev.registrationservice.otp.OtpDto;
 import com.lkksoftdev.registrationservice.otp.OtpService;
-import com.lkksoftdev.registrationservice.user.OnlineAccountStatus;
+import com.lkksoftdev.registrationservice.user.User;
 import com.lkksoftdev.registrationservice.user.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ public class AuthController {
             throw new CustomResourceNotFoundException("Customer not found with given details: " + customerOnlineRegistrationDto.getSafeSummaryString());
         }
 
-        var response = otpService.setOtpForCustomer(user, OnlineAccountStatus.PENDING);
+        var response = otpService.setOtpForCustomer(user, User.OnlineAccountStatus.PENDING);
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
@@ -53,6 +53,11 @@ public class AuthController {
         if (userDetails == null) {
             LOGGER.error("Invalid credentials: {}", loginRequestDto.getUsername());
             throw new CustomResourceNotFoundException("Invalid credentials");
+        }
+
+        if (userDetails.getOnlineAccountStatus().equals(User.OnlineAccountStatus.PENDING.toString())) {
+            LOGGER.error("Account not verified: {}", loginRequestDto.getUsername());
+            throw new CustomBadRequestException("Account not verified");
         }
 
         JwtResponseDto response = userService.getJwtResponseDto(userDetails);
