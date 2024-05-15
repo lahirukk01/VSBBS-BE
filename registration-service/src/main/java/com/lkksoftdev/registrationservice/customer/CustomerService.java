@@ -59,30 +59,24 @@ public class CustomerService {
         otpService.consumeOtp(otp);
     }
 
-    public boolean areProfileDetailsValid(CustomerProfileUpdateDto customerProfileUpdateDto, User user) {
-        return user.getId().equals(customerProfileUpdateDto.getId())
-                && user.getEmail().equals(customerProfileUpdateDto.getEmail())
-                && user.getMobile().equals(customerProfileUpdateDto.getMobile());
+    public boolean areProfileDetailsValid(CustomerProfileActivationDto customerProfileActivationDto, User user) {
+        return user.getId().equals(customerProfileActivationDto.getId())
+                && user.getEmail().equals(customerProfileActivationDto.getEmail())
+                && user.getMobile().equals(customerProfileActivationDto.getMobile());
     }
 
     @Transactional
-    public Map<String, String> initiateUpdatingCustomerProfile(CustomerProfileUpdateDto customerProfileUpdateDto, User user) {
-        user.setFirstName(customerProfileUpdateDto.getFirstName());
-        user.setLastName(customerProfileUpdateDto.getLastName());
-        user.setUsername(customerProfileUpdateDto.getUsername());
+    public Map<String, String> initiateUpdatingCustomerProfile(User user) {
         user.setOnlineAccountStatus(User.OnlineAccountStatus.UPDATE_REQUESTED.toString());
         userRepository.save(user);
-
         return otpService.setOtpForCustomer(user, User.OnlineAccountStatus.UPDATE_REQUESTED);
     }
 
     @Transactional
-    public Map<String, String> completeProfileUpdate(User user, Otp otp) {
+    public void completeProfileUpdate(User user, Otp otp) {
         user.setOnlineAccountStatus(User.OnlineAccountStatus.ACTIVE.toString());
         userRepository.save(user);
         otpService.consumeOtp(otp);
-
-        return Map.of("message", "Profile updated successfully");
     }
 
     public User findUserById(Integer userId) {

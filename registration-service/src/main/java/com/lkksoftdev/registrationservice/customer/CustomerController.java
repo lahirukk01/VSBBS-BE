@@ -1,5 +1,6 @@
 package com.lkksoftdev.registrationservice.customer;
 
+import com.lkksoftdev.registrationservice.auth.JwtResponseDto;
 import com.lkksoftdev.registrationservice.common.ResponseDto;
 import com.lkksoftdev.registrationservice.exception.CustomBadRequestException;
 import com.lkksoftdev.registrationservice.exception.CustomResourceNotFoundException;
@@ -7,6 +8,7 @@ import com.lkksoftdev.registrationservice.otp.Otp;
 import com.lkksoftdev.registrationservice.otp.OtpDto;
 import com.lkksoftdev.registrationservice.otp.OtpService;
 import com.lkksoftdev.registrationservice.user.User;
+import com.lkksoftdev.registrationservice.user.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
@@ -25,27 +27,29 @@ import java.util.Map;
 @RequestMapping("/users")
 public class CustomerController {
     private final CustomerService customerService;
+    private final UserService userService;
     private final OtpService otpService;
 
-    public CustomerController(CustomerService customerService, OtpService otpService) {
+    public CustomerController(CustomerService customerService, UserService userService, OtpService otpService) {
         this.customerService = customerService;
+        this.userService = userService;
         this.otpService = otpService;
     }
 
     @PutMapping("/profile")
     @PreAuthorize("hasAuthority('SCOPE_CUSTOMER')")
-    public ResponseEntity<?> updateProfile(@Valid @RequestBody CustomerProfileUpdateDto customerProfileUpdateDto, Authentication authentication) {
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody CustomerProfileActivationDto customerProfileActivationDto, Authentication authentication) {
         var customer = customerService.findCustomerWithUsername(authentication.getName());
 
         if (customer == null) {
             throw new CustomResourceNotFoundException("Customer not found for the auth token");
         }
 
-        if (!customerService.areProfileDetailsValid(customerProfileUpdateDto, customer)) {
+        if (!customerService.areProfileDetailsValid(customerProfileActivationDto, customer)) {
             throw new CustomBadRequestException("Invalid customer profile details provided");
         }
 
-        var response = customerService.initiateUpdatingCustomerProfile(customerProfileUpdateDto, customer);
+        var response = customerService.initiateUpdatingCustomerProfile(customer);
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
@@ -59,7 +63,9 @@ public class CustomerController {
             throw new CustomResourceNotFoundException("Invalid OTP for the user");
         }
 
-        var response = customerService.completeProfileUpdate(user, otp);
+        customerService.completeProfileUpdate(user, otp);
+        var userDetails = userService.findUserWithUsername(user.getUsername());
+        JwtResponseDto response = userService.getJwtResponseDto(userDetails);
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
