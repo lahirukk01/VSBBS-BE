@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @EnableMethodSecurity
-@RequestMapping("/customers")
+@RequestMapping("/users")
 public class CustomerController {
     private final CustomerService customerService;
     private final OtpService otpService;
@@ -32,7 +32,7 @@ public class CustomerController {
         this.otpService = otpService;
     }
 
-    @PostMapping("/profile")
+    @PutMapping("/profile")
     @PreAuthorize("hasAuthority('SCOPE_CUSTOMER')")
     public ResponseEntity<?> updateProfile(@Valid @RequestBody CustomerProfileUpdateDto customerProfileUpdateDto, Authentication authentication) {
         var customer = customerService.findCustomerWithUsername(authentication.getName());
@@ -42,7 +42,7 @@ public class CustomerController {
         }
 
         if (!customerService.areProfileDetailsValid(customerProfileUpdateDto, customer)) {
-            throw new CustomBadRequestException("Customer profile details do not match the existing profile");
+            throw new CustomBadRequestException("Invalid customer profile details provided");
         }
 
         var response = customerService.initiateUpdatingCustomerProfile(customerProfileUpdateDto, customer);
@@ -63,9 +63,12 @@ public class CustomerController {
         return new ResponseEntity<>(new ResponseDto(response, null), HttpStatus.OK);
     }
 
-    // Get customer info
-    @GetMapping("/{customerId}")
-    public ResponseEntity<?> getCustomerInfo(@PathVariable @Min(1) Integer customerId, Authentication authentication) {
+    /**
+     * Manager can get info of any customer or himself.
+     * A customer can get info of himself only.
+     * */
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getCustomerInfo(@PathVariable @Min(0) Integer userId, Authentication authentication) {
         String userScope = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
@@ -74,17 +77,24 @@ public class CustomerController {
         JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
         Map<String, Object> claims = jwtAuthenticationToken.getTokenAttributes();
 
-        if (userScope.equals("SCOPE_CUSTOMER") && !Long.valueOf(customerId).equals(claims.get("userId"))) {
+        if (userScope.equals("SCOPE_CUSTOMER") && !Long.valueOf(userId).equals(claims.get("userId"))) {
             throw new CustomBadRequestException("Invalid customer id");
         }
 
-        var customer = customerService.findCustomerById(customerId);
+        User user;
 
-        if (userScope.equals("SCOPE_CUSTOMER") && !claims.get("onlineAccountStatus").equals("ACTIVE")) {
-            customer.setEmail(null);
-            customer.setMobile(null);
+        if (userId == 0) {
+            user = customerService.findCustomerWithUsername(authentication.getName());
+        } else {
+            user = customerService.findUserById(userId);
         }
 
-        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(customer, "Customer"), HttpStatus.OK);
+        if (userScope.equals("SCOPE_CUSTOMER") && !claims.get("onlineAccountStatus").equals("ACTIVE")) {
+            user.setEmail(null);
+            user.setMobile(null);
+            user.setId(0);
+        }
+
+        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(user, "User"), HttpStatus.OK);
     }
 }

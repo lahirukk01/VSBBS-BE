@@ -39,7 +39,7 @@ public class JwtService {
 
     public String createToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        var userId = Objects.equals(userDetails.getOnlineAccountStatus(), User.OnlineAccountStatus.ACTIVE.toString()) ? userDetails.getId() : "";
+        var userId = Objects.equals(userDetails.getOnlineAccountStatus(), User.OnlineAccountStatus.ACTIVE.toString()) ? userDetails.getId() : 0;
         var issuedAt = Instant.now();
         var expiresAt = issuedAt.plusSeconds(60 * 60);
 

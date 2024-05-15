@@ -7,6 +7,8 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,20 +22,24 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.util.FileCopyUtils;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.UUID;
 
 @Configuration
 public class JwtSecurityConfiguration {
     private final CustomUserDetailsService customUserDetailsService;
+    private final ResourceLoader resourceLoader;
 
-    public JwtSecurityConfiguration(CustomUserDetailsService customUserDetailsService) {
+    public JwtSecurityConfiguration(CustomUserDetailsService customUserDetailsService, ResourceLoader resourceLoader) {
         super();
         this.customUserDetailsService = customUserDetailsService;
+        this.resourceLoader = resourceLoader;
     }
 
     @Bean
@@ -60,17 +66,32 @@ public class JwtSecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
-    public KeyPair keyPair() throws RuntimeException {
-        try {
-            var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            return keyPairGenerator.generateKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+    public KeyPair keyPair() throws Exception {
+        Resource privateKeyResource = resourceLoader.getResource("classpath:authz.pem");
+        Resource publicKeyResource = resourceLoader.getResource("classpath:authz.pub");
+
+        String privateKeyContent = new String(FileCopyUtils.copyToByteArray(privateKeyResource.getInputStream()))
+                .replaceAll("\\n", "")
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "");
+
+        String publicKeyContent = new String(FileCopyUtils.copyToByteArray(publicKeyResource.getInputStream()))
+                .replaceAll("\\n", "")
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "");
+
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+
+        PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyContent));
+        PrivateKey privateKey = kf.generatePrivate(keySpecPKCS8);
+
+        X509EncodedKeySpec keySpecX509 = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent));
+        PublicKey publicKey = kf.generatePublic(keySpecX509);
+
+        return new KeyPair(publicKey, privateKey);
     }
+
 
     @Bean
     public RSAKey rsaKey(KeyPair keyPair) {

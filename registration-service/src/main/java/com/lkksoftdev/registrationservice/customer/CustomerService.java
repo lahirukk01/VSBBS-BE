@@ -40,7 +40,7 @@ public class CustomerService {
             return null;
         }
 
-        if (user.getOnlineAccountStatus().equals(User.OnlineAccountStatus.ACTIVE.toString())) {
+        if (!user.getOnlineAccountStatus().equals(User.OnlineAccountStatus.PENDING.toString())) {
             throw new CustomBadRequestException("User is already registered");
         }
 
@@ -85,8 +85,8 @@ public class CustomerService {
         return Map.of("message", "Profile updated successfully");
     }
 
-    public User findCustomerById(Integer customerId) {
-        return userRepository.findById(customerId)
-                .orElseThrow(() -> new CustomResourceNotFoundException("Customer not found"));
+    public User findUserById(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomResourceNotFoundException("User not found"));
     }
 }
