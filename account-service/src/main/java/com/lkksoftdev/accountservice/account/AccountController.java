@@ -44,12 +44,6 @@ public class AccountController {
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(accounts, Account.class), HttpStatus.OK);
     }
 
-    @GetMapping("/{customerId}/accounts/{accountId}")
-    public ResponseEntity<?> getCustomerAccount(@PathVariable Long customerId, @PathVariable Long accountId) {
-        var account = accountService.getCustomerAccountWithLastTenTransactions(customerId, accountId);
-        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(account, Account.class), HttpStatus.OK);
-    }
-
     @PostMapping("/{customerId}/accounts/{accountId}/loan-payment")
     public ResponseEntity<?> makeLoanPayment(
             @PathVariable @Min(1) Long customerId,
@@ -133,6 +127,7 @@ public class AccountController {
            @RequestParam(value = "toDate", required = false) LocalDate toDate){
 
         var account = accountService.getCustomerAccountAsDto(customerId, accountId);
+        LOGGER.info("Account: {}, Customer: {}, onDate: {}, fromDate: {}, toDate: {}", accountId, customerId, onDate, fromDate, toDate);
 
         if (account == null) {
             throw new CustomResourceNotFoundException("Account not found");
@@ -155,7 +150,7 @@ public class AccountController {
 
             transactions = transactionService.getTransactionsByAccountIdBetweenDates(accountId, fromDate, toDate);
         } else {
-            throw new CustomBadRequestException("Invalid search parameters");
+            transactions = transactionService.getTenLatestTransactionsByAccountId(accountId);
         }
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(transactions, Transaction.class), HttpStatus.OK);
     }
