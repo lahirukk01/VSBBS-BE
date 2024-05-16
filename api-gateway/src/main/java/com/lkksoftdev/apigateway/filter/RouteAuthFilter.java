@@ -78,7 +78,8 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
                     * online account status can access the account-service.
                     * */
                     if (path.startsWith(accountServicePath) &&
-                            isActiveCustomer(introspectResponseDataDto)) {
+                            isActiveCustomer(introspectResponseDataDto) &&
+                            isCustomerOwnerOfResource(path, introspectResponseDataDto)) {
                             return chain.filter(exchange);
                     }
 
@@ -103,6 +104,11 @@ public class RouteAuthFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return FilterOrder.ROUTE_AUTH_FILTER;
+    }
+
+    private boolean isCustomerOwnerOfResource(String path, IntrospectResponseDataDto introspectResponseDataDto) {
+        String[] pathParts = path.split("/");
+        return pathParts.length > 2 && introspectResponseDataDto.userId().equals(pathParts[2]);
     }
 
     private Mono<Void> forwardRequest(
