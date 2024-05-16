@@ -13,12 +13,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -124,23 +124,25 @@ public class AccountController {
            @PathVariable Long accountId,
            @RequestParam(value = "onDate", required = false) LocalDate onDate,
            @RequestParam(value = "fromDate", required = false) LocalDate fromDate,
-           @RequestParam(value = "toDate", required = false) LocalDate toDate){
+           @RequestParam(value = "toDate", required = false) LocalDate toDate,
+           @RequestParam(value = "page", required = false, defaultValue = "0") Integer page) {
 
         var account = accountService.getCustomerAccountAsDto(customerId, accountId);
-        LOGGER.info("Account: {}, Customer: {}, onDate: {}, fromDate: {}, toDate: {}", accountId, customerId, onDate, fromDate, toDate);
+        LOGGER.info("Account: {}, Customer: {}, onDate: {}, fromDate: {}, toDate: {}, page: {}",
+                accountId, customerId, onDate, fromDate, toDate, page);
 
         if (account == null) {
             throw new CustomResourceNotFoundException("Account not found");
         }
 
-        List<Transaction> transactions;
+        Page<Transaction> transactions;
 
         if (onDate != null) {
             if (fromDate != null || toDate != null) {
                 throw new CustomBadRequestException("Invalid search parameters. onDate is already provided.");
             }
 
-            transactions = transactionService.getTransactionsByAccountIdBetweenDates(accountId, onDate, onDate);
+            transactions = transactionService.getTransactionsByAccountIdBetweenDates(accountId, onDate, onDate, page);
         } else if (fromDate != null) {
             if (toDate == null) {
                 toDate = LocalDate.now();
@@ -148,10 +150,16 @@ public class AccountController {
                 throw new CustomBadRequestException("toDate should be after fromDate");
             }
 
-            transactions = transactionService.getTransactionsByAccountIdBetweenDates(accountId, fromDate, toDate);
+            transactions = transactionService.getTransactionsByAccountIdBetweenDates(accountId, fromDate, toDate, page);
         } else {
-            transactions = transactionService.getTenLatestTransactionsByAccountId(accountId);
+            transactions = transactionService.getTransactionsByAccountIdOrderByCreatedAtDesc(accountId, page);
         }
-        return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(transactions, Transaction.class), HttpStatus.OK);
+
+        Map<String, Object> responseData = Map.of(
+                "totalPages", transactions.getTotalPages(),
+                "currentPage", transactions.getNumber(),
+                "transactions", transactions.getContent());
+
+        return new ResponseEntity<>(new ResponseDto(responseData, null), HttpStatus.OK);
     }
 }

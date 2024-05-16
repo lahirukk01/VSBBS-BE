@@ -1,11 +1,13 @@
 package com.lkksoftdev.accountservice.transaction;
 
 import com.lkksoftdev.accountservice.account.Account;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class TransactionService {
@@ -15,15 +17,18 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
-    public List<Transaction> getTransactionsByAccountIdBetweenDates(Long accountId, LocalDate fromDate, LocalDate toDate) {
-        return transactionRepository.findByAccountIdAndCreatedAtBetween(
+    public Page<Transaction> getTransactionsByAccountIdBetweenDates(Long accountId, LocalDate fromDate, LocalDate toDate, int page) {
+        Pageable pageable = PageRequest.of(page, 10);
+
+        return transactionRepository.findByAccountIdAndCreatedAtBetweenOrderByCreatedAtDesc(
                 accountId,
                 fromDate.atStartOfDay(),
-                toDate.atTime(23, 59, 59));
+                toDate.atTime(23, 59, 59), pageable);
     }
 
-    public List<Transaction> getTenLatestTransactionsByAccountId(Long accountId) {
-        return transactionRepository.findTop10ByAccountIdOrderByCreatedAtDesc(accountId);
+    public Page<Transaction> getTransactionsByAccountIdOrderByCreatedAtDesc(Long accountId, int page) {
+        Pageable pageable = PageRequest.of(page, 10);
+        return transactionRepository.findByAccountIdOrderByCreatedAtDesc(accountId, pageable);
     }
 
     public void createTransaction(Long beneficiaryAccountId, String beneficiaryIfscCode, Account account, TransactionRequestDto transactionRequestDto) {

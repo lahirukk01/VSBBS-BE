@@ -1,14 +1,15 @@
 package com.lkksoftdev.accountservice.transaction;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    List<Transaction> findTop10ByAccountIdOrderByCreatedAtDesc(Long accountId);
+    Page<Transaction> findByAccountIdOrderByCreatedAtDesc(Long accountId, Pageable pageable);
 
-    List<Transaction> findByAccountIdAndCreatedAtBetween(Long account_id, LocalDateTime start, LocalDateTime end);
+    Page<Transaction> findByAccountIdAndCreatedAtBetweenOrderByCreatedAtDesc(Long account_id, LocalDateTime start, LocalDateTime end, Pageable pageable);
 }

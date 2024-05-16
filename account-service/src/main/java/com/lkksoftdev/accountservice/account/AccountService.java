@@ -1,7 +1,5 @@
 package com.lkksoftdev.accountservice.account;
 
-import com.lkksoftdev.accountservice.exception.CustomResourceNotFoundException;
-import com.lkksoftdev.accountservice.transaction.Transaction;
 import com.lkksoftdev.accountservice.transaction.TransactionRequestDto;
 import com.lkksoftdev.accountservice.transaction.TransactionService;
 import jakarta.transaction.Transactional;
@@ -23,20 +21,6 @@ public class AccountService {
 
     public List<AccountDto> getAccountsByCustomerIdAsDto(Long customerId) {
         return convertAccountsToDto(accountRepository.findByCustomerId(customerId));
-    }
-
-    public AccountDto getCustomerAccountWithLastTenTransactions(Long customerId, Long accountId) {
-        AccountDto account = getCustomerAccountAsDto(customerId, accountId);
-
-        if (account == null) {
-            throw new CustomResourceNotFoundException("Account not found");
-        }
-
-        List<Transaction> transactions = transactionService.getTenLatestTransactionsByAccountId(accountId);
-
-        account.setTransactions(transactions);
-
-        return account;
     }
 
     public AccountDto getCustomerAccountAsDto(Long customerId, Long accountId) {
