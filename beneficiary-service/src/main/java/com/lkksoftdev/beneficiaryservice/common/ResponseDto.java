@@ -25,7 +25,12 @@ public class ResponseDto {
         String className = customEntityClass.getSimpleName().toLowerCase();
 
         if (data instanceof List<?> list) {
-            result.put(className + "s", list);
+            if (className.endsWith("y")) {
+                className = className.substring(0, className.length() - 1) + "ies";
+            } else {
+                className += "s";
+            }
+            result.put(className, list);
         } else {
             result.put(className, data);
         }

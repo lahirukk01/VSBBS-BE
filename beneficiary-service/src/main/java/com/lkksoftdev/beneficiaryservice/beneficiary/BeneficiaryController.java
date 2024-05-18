@@ -4,6 +4,8 @@ import com.lkksoftdev.beneficiaryservice.common.ResponseDto;
 import com.lkksoftdev.beneficiaryservice.exception.CustomBadRequestException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,7 @@ import java.util.List;
 @RestController
 public class BeneficiaryController {
     private final BeneficiaryService beneficiaryService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(BeneficiaryController.class);
 
     public BeneficiaryController(BeneficiaryService beneficiaryService) {
         this.beneficiaryService = beneficiaryService;
@@ -50,6 +53,7 @@ public class BeneficiaryController {
     // Delete a beneficiary by customer
     @DeleteMapping("/{customerId}/beneficiaries/{beneficiaryId}")
     ResponseEntity<?> deleteBeneficiary(@PathVariable Long customerId, @PathVariable Long beneficiaryId) {
+        beneficiaryService.getBeneficiaryByCustomer(customerId, beneficiaryId);
         beneficiaryService.deleteBeneficiary(customerId, beneficiaryId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -57,18 +61,10 @@ public class BeneficiaryController {
     // Get all beneficiaries by manager
     @GetMapping("/beneficiaries")
     ResponseEntity<?> getAllBeneficiaries(
-            @RequestParam(value = "page", required = false) @Min(0) Integer page,
-            @RequestParam(value = "size", required = false) @Min(1) Integer size,
-            @RequestParam(value = "status", required = false) String status) {
-        if (page == null) {
-            page = QueryLimits.DEFAULT_PAGE;
-        }
-
-        if (size == null) {
-            size = QueryLimits.DEFAULT_PAGE_SIZE;
-        }
-
-        List<Beneficiary> beneficiaries = beneficiaryService.getBeneficiaries(page, size, status);
+            @RequestParam(value = "page", required = false, defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(value = "status", required = false) BeneficiaryStatus status) {
+        LOGGER.info("Getting beneficiaries with page={}, status={}", page, status);
+        List<Beneficiary> beneficiaries = beneficiaryService.getBeneficiaries(page, 10, status);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(beneficiaries, Beneficiary.class), HttpStatus.OK);
     }
 

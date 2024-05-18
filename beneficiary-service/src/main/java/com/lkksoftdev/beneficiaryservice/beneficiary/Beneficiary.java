@@ -40,7 +40,7 @@ public class Beneficiary extends BeneficiaryBase {
         this.accountIfscCode = beneficiaryBase.getAccountIfscCode();
         this.email = beneficiaryBase.getEmail();
         this.customerId = customerId;
-        this.status = BeneficiaryStatus.PENDING.getStatus();
+        this.status = BeneficiaryStatus.PENDING.name();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

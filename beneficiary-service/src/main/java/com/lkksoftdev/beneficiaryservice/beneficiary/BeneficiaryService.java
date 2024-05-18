@@ -26,13 +26,13 @@ public class BeneficiaryService {
         return beneficiaryRepository.findAllByCustomerId(customerId);
     }
 
-    public List<Beneficiary> getBeneficiaries(Integer page, Integer size, String status) {
+    public List<Beneficiary> getBeneficiaries(Integer page, Integer size, BeneficiaryStatus status) {
         Sort sort = Sort.by("updatedAt").descending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
         if (status != null) {
-            return beneficiaryRepository.findAllByStatusOrderByCreatedAtDesc(status, pageable).getContent();
+            return beneficiaryRepository.findAllByStatusOrderByCreatedAtDesc(status.name(), pageable).getContent();
         }
 
         return beneficiaryRepository.findAllByOrderByCreatedAtDesc(pageable).getContent();
@@ -52,7 +52,7 @@ public class BeneficiaryService {
         beneficiary.setAccountId(beneficiaryBase.getAccountId());
         beneficiary.setAccountIfscCode(beneficiaryBase.getAccountIfscCode());
         beneficiary.setEmail(beneficiaryBase.getEmail());
-        beneficiary.setStatus(BeneficiaryStatus.PENDING.getStatus());
+        beneficiary.setStatus(BeneficiaryStatus.PENDING.name());
         beneficiary.setUpdatedAt(LocalDateTime.now());
         return beneficiaryRepository.save(beneficiary);
     }
@@ -63,7 +63,8 @@ public class BeneficiaryService {
     }
 
     public Beneficiary getBeneficiaryByCustomer(Long customerId, Long beneficiaryId) {
-        return beneficiaryRepository.findByIdAndCustomerId(beneficiaryId, customerId).orElseThrow();
+        return beneficiaryRepository.findByIdAndCustomerId(beneficiaryId, customerId)
+            .orElseThrow(() -> new CustomResourceNotFoundException("Beneficiary not found"));
     }
 
     public boolean isValidBeneficiaryStatus(String status) {
