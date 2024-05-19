@@ -103,12 +103,13 @@ public class AccountController {
         }
 
         Map<String, Object> beneficiaryData = (Map<String, Object>) ((Map<String, Object>) data).get("beneficiary");
+        LOGGER.info("Beneficiary data: {}", beneficiaryData);
 
         if (!beneficiaryData.get("status").equals(BeneficiaryStatus.APPROVED.getStatus())) {
             throw new CustomBadRequestException("Beneficiary is not approved");
         }
 
-        Long beneficiaryAccountId = ((Integer) beneficiaryData.get("accountId")).longValue();
+        Long beneficiaryAccountId = (Long) beneficiaryData.get("accountId");
         String beneficiaryAccountIfscCode = (String) beneficiaryData.get("accountIfscCode");
 
         accountService.createTransaction(beneficiaryAccountId,
