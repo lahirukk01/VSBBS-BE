@@ -16,5 +16,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     Page<Loan> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
+    Page<Loan> findByStatusOrderByCreatedAtDesc(String status, Pageable pageable);
+
     Optional<Loan> findByIdAndCustomerIdAndStatusAndPaymentStatus(Long loanId, Long customerId, String status, String paymentStatus);
 }

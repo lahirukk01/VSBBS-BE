@@ -7,6 +7,8 @@ import com.lkksoftdev.loanservice.payment.Payment;
 import com.lkksoftdev.loanservice.payment.PaymentDto;
 import com.lkksoftdev.loanservice.payment.PaymentService;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class LoanService {
     private final PaymentService paymentService;
     private final AccountClient accountClient;
     private final CustomerClient customerClient;
+    private final Logger LOGGER = LoggerFactory.getLogger(LoanService.class);
 
     public LoanService(
             LoanRepository loanRepository,
@@ -40,7 +43,7 @@ public class LoanService {
         loan.setAmount(loanBase.getAmount());
         loan.setPurpose(loanBase.getPurpose());
         loan.setNumberOfEmis(loanBase.getNumberOfEmis());
-        loan.setStatus(LoanStatus.IN_PROGRESS.getValue());
+        loan.setStatus(LoanStatus.PENDING.name());
         loan.setPaymentStatus(LoanPaymentStatus.NA.getValue());
         loan.setCreatedAt(LocalDateTime.now());
         loan.setUpdatedAt(LocalDateTime.now());
@@ -68,9 +71,16 @@ public class LoanService {
         loanRepository.delete(loan);
     }
 
-    public List<Loan> getAllLoans(int page, int size) {
-        Pageable pageable = Pageable.ofSize(size).withPage(page);
-        Page<Loan> loans = loanRepository.findAllByOrderByCreatedAtDesc(pageable);
+    public List<Loan> getAllLoans(int page, LoanStatus status) {
+        Pageable pageable = Pageable.ofSize(10).withPage(page);
+        Page<Loan> loans;
+
+        if (status != null) {
+            loans = loanRepository.findByStatusOrderByCreatedAtDesc(status.name(), pageable);
+        } else {
+            loans = loanRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+
         return loans.getContent();
     }
 
@@ -79,15 +89,17 @@ public class LoanService {
                 .orElseThrow(() -> new CustomResourceNotFoundException("Loan with given details not found"));
     }
 
-    public void setLoanStatus(Loan loan, String status) {
-        loan.setStatus(status);
-        var paymentStatus = status.equals(LoanStatus.APPROVED.getValue()) ? LoanPaymentStatus.PENDING.getValue() : LoanPaymentStatus.NA.getValue();
+    public void setLoanStatus(Loan loan, LoanStatusUpdateRequestDto loanStatusUpdateRequestDto) {
+        loan.setRemarks(loanStatusUpdateRequestDto.remarks());
+        loan.setStatus(loanStatusUpdateRequestDto.status());
+        loan.setCreditRating(loanStatusUpdateRequestDto.creditRating());
+        var paymentStatus = loanStatusUpdateRequestDto.status().equals(LoanStatus.APPROVED.name()) ? LoanPaymentStatus.PENDING.getValue() : LoanPaymentStatus.NA.getValue();
         loan.setPaymentStatus(paymentStatus);
         loanRepository.save(loan);
     }
 
     public Loan findApprovedLoanByIdAndCustomerId(Long loanId, Long customerId) {
-        return loanRepository.findByIdAndCustomerIdAndStatusAndPaymentStatus(loanId, customerId, LoanStatus.APPROVED.getValue(), LoanPaymentStatus.PENDING.getValue())
+        return loanRepository.findByIdAndCustomerIdAndStatusAndPaymentStatus(loanId, customerId, LoanStatus.APPROVED.name(), LoanPaymentStatus.PENDING.getValue())
             .orElseThrow(() -> new CustomResourceNotFoundException("Approved loan with given details not found"));
     }
 
@@ -131,6 +143,9 @@ public class LoanService {
         var payment = paymentService.createPayment(loan.getId(), emiAmount, paymentDto.paymentMethod());
         var totalNumberOfPayments = paymentService.getTotalNumberOfPayments(loan.getId());
 
+        loan.setPaidEmis(totalNumberOfPayments);
+        loan.setUpdatedAt(LocalDateTime.now());
+
         if (totalNumberOfPayments == loan.getNumberOfEmis()) {
             loan.setPaymentStatus(LoanPaymentStatus.PAID.getValue());
             loanRepository.save(loan);
@@ -141,6 +156,7 @@ public class LoanService {
 
     public CustomerDto getCustomer(String authorizationHeader, Long customerId) {
         String customerResponseString = customerClient.getCustomer(authorizationHeader, customerId).getBody();
+        LOGGER.info("Customer response: {}", customerResponseString);
         var customer = getCustomerObject(customerResponseString);
 
         if (customer == null) {
@@ -158,13 +174,9 @@ public class LoanService {
         JSONObject customerResponseJson = new JSONObject(customerResponseString);
         var data = customerResponseJson.get("data");
 
-        if (customerResponseJson.get("data") == null) {
-            throw new CustomResourceNotFoundException("Customer not found");
-        }
-
         if (data == null) {
             throw new RuntimeException("Customer not found");
         }
-        return (JSONObject)((JSONObject)data).get("customer");
+        return (JSONObject)((JSONObject)data).get("user");
     }
 }

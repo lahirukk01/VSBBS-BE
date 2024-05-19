@@ -10,6 +10,8 @@ import com.lkksoftdev.loanservice.payment.Payment;
 import com.lkksoftdev.loanservice.payment.PaymentDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,7 @@ import java.util.List;
 public class LoanController {
     private final LoanService loanService;
     private final ExternalServiceClient externalServiceClient;
+    private final Logger LOGGER = LoggerFactory.getLogger(LoanController.class);
 
     public LoanController(LoanService loanService, ExternalServiceClient externalServiceClient) {
         this.loanService = loanService;
@@ -28,6 +31,11 @@ public class LoanController {
 
     @PostMapping("/{customerId}/loans")
     ResponseEntity<?> createLoan(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody LoanBase loanBase, @PathVariable @Min(1) Long customerId) {
+        LOGGER.info("""
+                Creating loan for customer: {},
+                Loan Details: {},
+                Auth Header: {}
+                """, customerId, loanBase.toString(), authHeader);
         CustomerDto customerDto = loanService.getCustomer(authHeader, customerId);
 
         if (customerDto == null) {
@@ -55,7 +63,7 @@ public class LoanController {
     ResponseEntity<?> updateLoan(@Valid @RequestBody LoanBase loanBase, @PathVariable @Min(1) Long customerId, @PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findLoanByIdAndCustomerId(loanId, customerId);
 
-        if (!loan.getStatus().equals(LoanStatus.IN_PROGRESS.getValue())) {
+        if (!loan.getStatus().equals(LoanStatus.PENDING.name())) {
             throw  new CustomBadRequestException("Loan has already been processed");
         }
 
@@ -67,7 +75,7 @@ public class LoanController {
     ResponseEntity<?> deleteLoan(@PathVariable @Min(1) Long customerId, @PathVariable @Min(1) Long loanId) {
         Loan loan = loanService.findLoanByIdAndCustomerId(loanId, customerId);
 
-        if (!loan.getStatus().equals(LoanStatus.IN_PROGRESS.getValue())) {
+        if (!loan.getStatus().equals(LoanStatus.PENDING.name())) {
             throw  new CustomBadRequestException("Loan has already been processed");
         }
 
@@ -89,16 +97,11 @@ public class LoanController {
 
     // Manager get all loans
     @GetMapping("/loans")
-    ResponseEntity<?> getAllLoans(@RequestParam(required = false) @Min(0) Integer page, @RequestParam(required = false) @Min(1) Integer size) {
-        if (page == null) {
-            page = 0;
-        }
-
-        if (size == null) {
-            size = 10;
-        }
-
-        List<Loan> loans = loanService.getAllLoans(page, size);
+    ResponseEntity<?> getAllLoans(
+            @RequestParam(required = false, defaultValue = "0") @Min(0) Integer page,
+          @RequestParam(required = false) LoanStatus status) {
+        LOGGER.info("Getting all loans with page: {}, status: {}", page, status);
+        List<Loan> loans = loanService.getAllLoans(page, status);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loans, Loan.class), HttpStatus.OK);
     }
 
@@ -136,7 +139,7 @@ public class LoanController {
         }
 
         Loan loan = loanService.findLoanById(loanId);
-        loanService.setLoanStatus(loan, statusDto.status());
+        loanService.setLoanStatus(loan, statusDto);
         return new ResponseEntity<>(ResponseDto.BuildSuccessResponse(loan, Loan.class), HttpStatus.OK);
     }
 }

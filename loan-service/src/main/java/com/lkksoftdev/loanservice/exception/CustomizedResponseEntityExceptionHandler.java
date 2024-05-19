@@ -28,7 +28,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<ResponseDto> handleAllExceptions(Exception ex, WebRequest request) {
-        LOGGER.error("Exception occurred: {}", ex.toString());
+        LOGGER.error("Exception occurred:", ex);
         return buildResponseEntity("Something went wrong", request, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

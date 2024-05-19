@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "customerClient", url = "${services.registration.urls.base}")
 public interface CustomerClient {
-    @GetMapping("/customers/{customerId}")
+    @GetMapping("/users/{customerId}")
     ResponseEntity<String> getCustomer(
         @RequestHeader("Authorization") String authorizationHeader,
         @PathVariable @Min(1) Long customerId);
