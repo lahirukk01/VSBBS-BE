@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum TransactionMethod {
     NEFT("NEFT"),
-    IMPS("UPI"),
+    UPI("UPI"),
     INTERNAL("INTERNAL"),
     RTGS("RTGS");
 
