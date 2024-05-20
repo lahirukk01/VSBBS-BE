@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   db:
-    image: mysql:8
+    image: mysql:8.3
     container_name: sba-banking-system
     command: --default-authentication-plugin=mysql_native_password
     restart: always
