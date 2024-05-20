@@ -89,6 +89,11 @@ public class LoanController {
             @RequestBody PaymentDto paymentDto,
             @PathVariable @Min(1) Long customerId,
             @PathVariable @Min(1) Long loanId) {
+        LOGGER.info("""
+                Creating payment for customer: {},
+                Loan: {},
+                Auth Header: {}
+                """, customerId, loanId, authorizationHeader);
         Loan loan = loanService.findApprovedLoanByIdAndCustomerId(loanId, customerId);
 
         var payment = loanService.createPayment(authorizationHeader, loan, paymentDto);

@@ -113,6 +113,16 @@ public class LoanService {
                 paymentDto.cardHolderName(), paymentDto.cardExpiry(), paymentDto.cardCvv(), emiAmount);
 
         externalServiceClient.makeCardPayment(cardPaymentDetailsDto).getBody();
+        LOGGER.info("Card payment successful");
+    }
+
+    private void processPaymentByUpi(String upiId, double emiAmount) {
+        if (upiId == null) {
+            throw new CustomBadRequestException("Invalid UPI ID");
+        }
+
+        externalServiceClient.makeUpiPayment(new UpiPaymentDetailsDto(upiId, emiAmount)).getBody();
+        LOGGER.info("Upi payment successful");
     }
 
     private void processPaymentBySavingsAccount(String authorizationHeader, double emiAmount, Long loanId, Long customerId, Long savingsAccountId) {
@@ -135,6 +145,7 @@ public class LoanService {
                 processPaymentBySavingsAccount(authorizationHeader, emiAmount, loan.getId(), loan.getCustomerId(), paymentDto.savingsAccountId());
                 break;
             case "UPI":
+                processPaymentByUpi(paymentDto.upiId(), emiAmount);
                 break;
             default:
                 throw new CustomResourceNotFoundException("Invalid payment method");
@@ -148,8 +159,8 @@ public class LoanService {
 
         if (totalNumberOfPayments == loan.getNumberOfEmis()) {
             loan.setPaymentStatus(LoanPaymentStatus.PAID.getValue());
-            loanRepository.save(loan);
         }
+        loanRepository.save(loan);
 
         return payment;
     }

@@ -1,4 +1,4 @@
 package com.lkksoftdev.loanservice.feign;
 
-public record UpiPaymentResponseDto() {
+public record UpiPaymentResponseDto(String status) {
 }

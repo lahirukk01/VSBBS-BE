@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class Loan extends LoanBase {
+    public static final double InterestRate = 0.04;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -52,7 +54,9 @@ public class Loan extends LoanBase {
             throw new IllegalArgumentException("Amount cannot be zero");
         }
 
+        double totalWithInterest = amount * (1 + InterestRate);
+
         // Including 1% processing fee
-        return Math.round(101 * amount / numberOfEmis) / 100.0;
+        return Math.round(101 * totalWithInterest / numberOfEmis) / 100.0;
     }
 }
