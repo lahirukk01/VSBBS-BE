@@ -9,14 +9,6 @@ phases:
     commands:
       - echo Fetching additional commit...
       - git fetch --depth=2
-      - echo Checking for changes in the server directories...
-      - |
-        for server in account-service api-gateway beneficiary-service config-server eureka-server external-service loan-service registration-service; do
-          if git diff --quiet HEAD^ HEAD $server/; then
-            echo "Changes detected in $server"
-            echo "##[set-output name=$server;isOutput=true]"
-          fi
-        done
 
   pre_build:
     commands:
@@ -30,7 +22,7 @@ phases:
     commands:
       - |
         for server in account-service api-gateway beneficiary-service config-server eureka-server external-service loan-service registration-service; do
-          if [ "$(echo ${{ steps.check.outputs.$server }})" == "true" ]; then
+          if git diff --quiet HEAD^ HEAD $server/; then
             echo "Building $server"
             REPOSITORY_URI=$BASE_REPOSITORY_URI/$server
             cd $server
@@ -44,7 +36,7 @@ phases:
     commands:
       - |
         for server in account-service api-gateway beneficiary-service config-server eureka-server external-service loan-service registration-service; do
-          if [ "$(echo ${{ steps.check.outputs.$server }})" == "true" ]; then
+          if git diff --quiet HEAD^ HEAD $server/; then
             echo "Pushing $server"
             REPOSITORY_URI=$BASE_REPOSITORY_URI/$server
             echo $DOCKER_PASSWORD | docker login --username AWS --password-stdin $REPOSITORY_URI
