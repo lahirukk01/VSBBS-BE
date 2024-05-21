@@ -27,8 +27,9 @@ phases:
             REPOSITORY_URI=$BASE_REPOSITORY_URI/$server
             cd $server
             mvn spring-boot:build -DskipTests
-            docker build -t $REPOSITORY_URI:latest .
+            docker tag $(docker images -q | head -n 1) $REPOSITORY_URI:latest
             docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+            cd ..
           fi
         done
 
