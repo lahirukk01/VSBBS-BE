@@ -7,10 +7,11 @@ env:
 phases:
   install:
     commands:
+      - echo Fetching additional commit...
+      - git fetch --depth=2
       - echo Checking for changes in the server directories...
       - |
         for server in account-service api-gateway beneficiary-service config-server eureka-server external-service loan-service registration-service; do
-          git diff HEAD^ HEAD $server
           if git diff --quiet HEAD^ HEAD $server/; then
             echo "Changes detected in $server"
             echo "##[set-output name=$server;isOutput=true]"
