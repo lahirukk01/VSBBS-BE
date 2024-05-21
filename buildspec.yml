@@ -22,7 +22,7 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - $(aws ecr get-login-password --region $AWS_DEFAULT_REGION)
+      - DOCKER_PASSWORD=$(aws ecr get-login-password --region $AWS_DEFAULT_REGION)
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
 
@@ -47,6 +47,7 @@ phases:
           if [ "$(echo ${{ steps.check.outputs.$server }})" == "true" ]; then
             echo "Pushing $server"
             REPOSITORY_URI=$BASE_REPOSITORY_URI/$server
+            echo $DOCKER_PASSWORD | docker login --username AWS --password-stdin $REPOSITORY_URI
             docker push $REPOSITORY_URI:latest
             docker push $REPOSITORY_URI:$IMAGE_TAG
           fi
