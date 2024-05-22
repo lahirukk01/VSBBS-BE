@@ -16,16 +16,22 @@ for server in "${SERVERS_LIST[@]}"; do
   if [ -d "$server" ] && ! git diff --quiet HEAD^ HEAD "$server"; then
     echo "Processing $server"
     REPOSITORY_URI=$BASE_REPOSITORY_URI/$server
+
     cd "$server" || exit
+
     mvn spring-boot:build-image -DskipTests
     echo "$DOCKER_PASSWORD" | docker login --username AWS --password-stdin "$REPOSITORY_URI"
-    BUILT_IMAGE="$(docker images -q | tail -n 1)"
-    echo "Built image: $BUILT_IMAGE"
-    BUILT_IMAGES+=" $BUILT_IMAGE"
-    docker tag "$BUILT_IMAGE" "$REPOSITORY_URI":latest
-    docker tag "$REPOSITORY_URI":latest "$REPOSITORY_URI":"$IMAGE_TAG"
-    docker push "$REPOSITORY_URI":latest
-    docker push "$REPOSITORY_URI":"$IMAGE_TAG"
+    BUILT_IMAGE="$(docker images -q "$REPOSITORY_URI")"
+
+    if [[ -n $BUILT_IMAGE ]]; then
+      echo "Built image: $BUILT_IMAGE"
+      BUILT_IMAGES+=" $BUILT_IMAGE"
+      docker tag "$BUILT_IMAGE" "$REPOSITORY_URI":latest
+      docker tag "$REPOSITORY_URI":latest "$REPOSITORY_URI":"$IMAGE_TAG"
+      docker push "$REPOSITORY_URI":latest
+      docker push "$REPOSITORY_URI":"$IMAGE_TAG"
+    fi
+
     cd ..
   fi
 done
