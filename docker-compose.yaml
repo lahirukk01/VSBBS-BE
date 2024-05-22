@@ -35,7 +35,7 @@ services:
       - "8888:8888"
     environment:
       SPRING_CLOUD_CONFIG_SERVER_GIT_URI: /config-repo
-      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://eureka-server:8761/eureka
     volumes:
       - /home/ec2-user/vsbbs/VSBBS-git-config-repo:/config-repo
     networks:
