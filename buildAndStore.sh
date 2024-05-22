@@ -30,7 +30,7 @@ for server in "${SERVERS_LIST[@]}"; do
   fi
 done
 
-#if [[ -n $BUILT_IMAGES ]]; then
-#  echo "Deleting built images"
-#  docker rmi "$BUILT_IMAGES"
-#fi
+if [[ -n $BUILT_IMAGES ]]; then
+  echo "Deleting built images: $BUILT_IMAGES"
+  docker rmi "$BUILT_IMAGES"
+fi
