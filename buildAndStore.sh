@@ -15,7 +15,7 @@ for server in "${SERVERS_LIST[@]}"; do
     echo "Processing $server"
     REPOSITORY_URI=$BASE_REPOSITORY_URI/$server
     cd "$server" || exit
-    mvn spring-boot:build -DskipTests
+    mvn spring-boot:build-image -DskipTests
     echo "$DOCKER_PASSWORD" | docker login --username AWS --password-stdin "$REPOSITORY_URI"
     BUILT_IMAGE="$(docker images -q | tail -n 1)"
     echo "Built image: $BUILT_IMAGE"
