@@ -97,7 +97,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<image>
-						<name>lkksoftdev/vsbba-${project.artifactId}:${project.version}</name>
+						<name>lkksoftdev/vsbba/${project.artifactId}:${project.version}</name>
 					</image>
 					<pullPolicy>IF_NOT_PRESENT</pullPolicy>
 					<excludes>
