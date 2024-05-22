@@ -15,9 +15,42 @@ services:
       - ./database:/var/lib/mysql
     ports:
       - "3306:3306"
+    networks:
+      - sba_network
+
+  eureka-server:
+    image: 124984100580.dkr.ecr.us-east-1.amazonaws.com/lkksoftdev/vsbba/eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - sba_network
+    depends_on:
+      - db
+
+  config-server:
+    image: 124984100580.dkr.ecr.us-east-1.amazonaws.com/lkksoftdev/vsbba/config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: /config-repo
+      EUREKA.CLIENT.SERVICE-URL.DEFAULTZONE: http://eureka-server:8761/eureka
+    volumes:
+      - /home/ec2-user/vsbbs/VSBBS-git-config-repo:/config-repo
+    networks:
+      - sba_network
+    depends_on:
+      - eureka-server
 
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin
     ports:
       - "9411:9411"
+    networks:
+      - sba_network
+
+networks:
+  sba_network:
+
