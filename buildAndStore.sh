@@ -22,7 +22,7 @@ for server in "${SERVERS_LIST[@]}"; do
     mvn spring-boot:build-image -DskipTests
     echo "$DOCKER_PASSWORD" | docker login --username AWS --password-stdin "$REPOSITORY_URI"
     echo "Image Repo: $REPOSITORY_URI"
-    BUILT_IMAGE="$(docker images -q "$REPOSITORY_URI")"
+    BUILT_IMAGE="$(docker images -q "lkksoftdev/vsbba/$server")"
 
     if [[ -n $BUILT_IMAGE ]]; then
       echo "Built image: $BUILT_IMAGE"
