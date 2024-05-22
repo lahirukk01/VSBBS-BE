@@ -10,7 +10,14 @@ IMAGE_TAG=${COMMIT_HASH:=latest}
 
 DOCKER_PASSWORD="$(aws ecr get-login-password --region "$AWS_DEFAULT_REGION")"
 
-BUILT_IMAGES=""
+# Delete previous images
+for server in "${SERVERS_LIST[@]}"; do
+  if [ -d "$server" ]; then
+    echo "Deleting previous images for $server"
+    REPOSITORY_URI=$BASE_REPOSITORY_URI/$server
+    docker rmi -f "$(docker images -q "$REPOSITORY_URI")"
+  fi
+done
 
 for server in "${SERVERS_LIST[@]}"; do
   if [ -d "$server" ] && ! git diff --quiet HEAD^ HEAD "$server"; then
@@ -26,7 +33,6 @@ for server in "${SERVERS_LIST[@]}"; do
 
     if [[ -n $BUILT_IMAGE ]]; then
       echo "Built image: $BUILT_IMAGE"
-      BUILT_IMAGES+=" $BUILT_IMAGE"
       docker tag "$BUILT_IMAGE" "$REPOSITORY_URI":latest
       docker tag "$REPOSITORY_URI":latest "$REPOSITORY_URI":"$IMAGE_TAG"
       docker push "$REPOSITORY_URI":latest
@@ -37,7 +43,4 @@ for server in "${SERVERS_LIST[@]}"; do
   fi
 done
 
-if [[ -n $BUILT_IMAGES ]]; then
-  echo "Deleting built images: $BUILT_IMAGES"
-  docker rmi "$BUILT_IMAGES"
-fi
+
