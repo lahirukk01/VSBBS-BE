@@ -1,3 +1,5 @@
+export AWS_DEFAULT_REGION=us-east-1
+
 BASE_REPOSITORY_URI=124984100580.dkr.ecr.us-east-1.amazonaws.com/lkksoftdev/vsbba
 SERVERS_LIST=(
 "account-service" "api-gateway" "beneficiary-service" "config-server" "eureka-server"
@@ -6,7 +8,7 @@ SERVERS_LIST=(
 COMMIT_HASH=$(echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" | cut -c 1-7)
 IMAGE_TAG=${COMMIT_HASH:=latest}
 
-DOCKER_PASSWORD=$(aws ecr get-login-password --region "$AWS_DEFAULT_REGION")
+DOCKER_PASSWORD="$(aws ecr get-login-password --region "$AWS_DEFAULT_REGION")"
 
 BUILT_IMAGES=""
 
