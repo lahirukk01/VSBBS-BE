@@ -20,6 +20,7 @@ services:
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin
+    restart: always
     ports:
       - "9411:9411"
     networks:
