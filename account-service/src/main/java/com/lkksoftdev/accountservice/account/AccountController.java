@@ -109,7 +109,7 @@ public class AccountController {
             throw new CustomBadRequestException("Beneficiary is not approved");
         }
 
-        Long beneficiaryAccountId = (Long) beneficiaryData.get("accountId");
+        Long beneficiaryAccountId = ((Integer) beneficiaryData.get("accountId")).longValue();
         String beneficiaryAccountIfscCode = (String) beneficiaryData.get("accountIfscCode");
 
         accountService.createTransaction(beneficiaryAccountId,
